@@ -1,0 +1,5 @@
+node_modules/
+uploads/
+crm.db
+server.log
+*.log
