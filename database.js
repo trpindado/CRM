@@ -93,7 +93,7 @@ function initSchema() {
       username TEXT UNIQUE NOT NULL,
       password TEXT NOT NULL,
       nombre TEXT,
-      rol TEXT NOT NULL CHECK(rol IN ('admin', 'comercial'))
+      rol TEXT NOT NULL DEFAULT 'user'
     );
   `);
 

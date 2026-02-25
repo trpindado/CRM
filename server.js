@@ -33,11 +33,6 @@ function requireAuth(req, res, next) {
   res.status(401).json({ error: 'No autorizado' });
 }
 
-function requireAdmin(req, res, next) {
-  if (req.session && req.session.user && req.session.user.rol === 'admin') return next();
-  res.status(403).json({ error: 'Acceso denegado. Se requiere rol de administrador.' });
-}
-
 // ============ AUTH ============
 app.post('/api/login', (req, res) => {
   const { username, password } = req.body;
@@ -102,7 +97,7 @@ Object.entries(tableConfig).forEach(([route, config]) => {
   });
 
   // POST create
-  app.post(`/api/${route}`, requireAdmin, (req, res) => {
+  app.post(`/api/${route}`, requireAuth, (req, res) => {
     try {
       const result = db.insert(config.table, req.body);
       res.json({ ok: true, id: result.lastInsertRowid });
@@ -112,7 +107,7 @@ Object.entries(tableConfig).forEach(([route, config]) => {
   });
 
   // PUT update
-  app.put(`/api/${route}/:id`, requireAdmin, (req, res) => {
+  app.put(`/api/${route}/:id`, requireAuth, (req, res) => {
     try {
       db.update(config.table, config.pk, req.params.id, req.body);
       res.json({ ok: true });
@@ -122,7 +117,7 @@ Object.entries(tableConfig).forEach(([route, config]) => {
   });
 
   // DELETE
-  app.delete(`/api/${route}/:id`, requireAdmin, (req, res) => {
+  app.delete(`/api/${route}/:id`, requireAuth, (req, res) => {
     try {
       db.remove(config.table, config.pk, req.params.id);
       res.json({ ok: true });
@@ -133,7 +128,7 @@ Object.entries(tableConfig).forEach(([route, config]) => {
 });
 
 // ============ IMPORT EXCEL ============
-app.post('/api/import', requireAdmin, upload.single('file'), (req, res) => {
+app.post('/api/import', requireAuth, upload.single('file'), (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ error: 'No se ha proporcionado archivo' });
 
@@ -178,12 +173,12 @@ app.post('/api/import', requireAdmin, upload.single('file'), (req, res) => {
 });
 
 // ============ USERS MANAGEMENT (admin only) ============
-app.get('/api/usuarios', requireAdmin, (req, res) => {
+app.get('/api/usuarios', requireAuth, (req, res) => {
   const users = db.getDb().prepare('SELECT id, username, nombre, rol FROM Usuarios').all();
   res.json(users);
 });
 
-app.post('/api/usuarios', requireAdmin, (req, res) => {
+app.post('/api/usuarios', requireAuth, (req, res) => {
   try {
     const { username, password, nombre, rol } = req.body;
     db.getDb().prepare('INSERT INTO Usuarios (username, password, nombre, rol) VALUES (?, ?, ?, ?)').run(username, password, nombre, rol);
@@ -193,7 +188,7 @@ app.post('/api/usuarios', requireAdmin, (req, res) => {
   }
 });
 
-app.delete('/api/usuarios/:id', requireAdmin, (req, res) => {
+app.delete('/api/usuarios/:id', requireAuth, (req, res) => {
   db.getDb().prepare('DELETE FROM Usuarios WHERE id = ?').run(req.params.id);
   res.json({ ok: true });
 });
@@ -205,6 +200,5 @@ app.get('/{*splat}', (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`CRM GNL corriendo en http://localhost:${PORT}`);
-  console.log(`  Admin:     admin / admin123`);
-  console.log(`  Comercial: comercial / comercial123`);
+  console.log(`  Usuario: admin / admin123`);
 });

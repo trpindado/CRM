@@ -33,7 +33,7 @@
         <p id="loginError" style="color:var(--danger);font-size:13px;margin-top:10px;display:none;"></p>
       </form>
       <div style="margin-top:24px;padding-top:16px;border-top:1px solid #eee;font-size:12px;color:#aaa;">
-        <strong>Demo:</strong> admin / admin123 &nbsp;|&nbsp; comercial / comercial123
+        <strong>Demo:</strong> admin / admin123
       </div>
     </div>
   </div>
@@ -56,26 +56,26 @@
           <i class="fas fa-search"></i> Buscar Entidades
         </button>
 
-        <div class="sidebar-section" id="adminSection">Administraci&oacute;n</div>
-        <button class="nav-item admin-only" data-view="admin-entidades">
+        <div class="sidebar-section" id="adminSection">Gesti&oacute;n</div>
+        <button class="nav-item" data-view="admin-entidades">
           <i class="fas fa-building"></i> Entidades
         </button>
-        <button class="nav-item admin-only" data-view="admin-contactos">
+        <button class="nav-item" data-view="admin-contactos">
           <i class="fas fa-address-book"></i> Contactos
         </button>
-        <button class="nav-item admin-only" data-view="admin-oportunidades">
+        <button class="nav-item" data-view="admin-oportunidades">
           <i class="fas fa-handshake"></i> Oportunidades
         </button>
-        <button class="nav-item admin-only" data-view="admin-documentos">
+        <button class="nav-item" data-view="admin-documentos">
           <i class="fas fa-file-alt"></i> Documentos
         </button>
-        <button class="nav-item admin-only" data-view="admin-paises">
+        <button class="nav-item" data-view="admin-paises">
           <i class="fas fa-globe"></i> Pa&iacute;ses
         </button>
-        <button class="nav-item admin-only" data-view="admin-import">
+        <button class="nav-item" data-view="admin-import">
           <i class="fas fa-file-upload"></i> Importar Datos
         </button>
-        <button class="nav-item admin-only" data-view="admin-usuarios">
+        <button class="nav-item" data-view="admin-usuarios">
           <i class="fas fa-users-cog"></i> Usuarios
         </button>
       </div>
@@ -240,6 +240,30 @@
         </div>
       </div>
 
+    </div>
+
+    <!-- AI ASSISTANT FAB -->
+    <button class="ai-chat-fab" id="aiChatFab" onclick="toggleAiChat()">
+      <i class="fas fa-robot"></i>
+    </button>
+
+    <!-- AI CHAT PANEL -->
+    <div class="ai-chat-panel" id="aiChatPanel">
+      <div class="ai-chat-header">
+        <div class="ai-chat-header-info">
+          <div class="ai-chat-avatar"><i class="fas fa-robot"></i></div>
+          <div>
+            <div class="ai-chat-name">Asistente IA</div>
+            <div class="ai-chat-status"><span class="ai-status-dot"></span> En l&iacute;nea</div>
+          </div>
+        </div>
+        <button class="ai-chat-close" onclick="toggleAiChat()">&times;</button>
+      </div>
+      <div class="ai-chat-messages" id="aiChatMessages"></div>
+      <div class="ai-chat-input-area">
+        <input type="text" class="ai-chat-input" id="aiChatInput" placeholder="Escribe un mensaje..." onkeydown="if(event.key==='Enter')sendAiMessage()">
+        <button class="ai-chat-send" onclick="sendAiMessage()"><i class="fas fa-paper-plane"></i></button>
+      </div>
     </div>
   </div>
 

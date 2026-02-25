@@ -2,3 +2,5 @@ node_modules/
 uploads/
 server.log
 *.log
+crm.db-shm
+crm.db-wal

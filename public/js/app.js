@@ -65,17 +65,8 @@ function showApp() {
   document.getElementById('appPage').classList.remove('hidden');
 
   document.getElementById('userName').textContent = currentUser.nombre;
-  document.getElementById('userRole').textContent = currentUser.rol === 'admin' ? 'Administrador' : 'Comercial';
+  document.getElementById('userRole').textContent = 'Usuario';
   document.getElementById('userAvatar').textContent = currentUser.nombre[0];
-
-  // Hide admin items for commercial users
-  if (currentUser.rol !== 'admin') {
-    document.getElementById('adminSection').classList.add('hidden');
-    document.querySelectorAll('.admin-only').forEach(el => el.classList.add('hidden'));
-  } else {
-    document.getElementById('adminSection').classList.remove('hidden');
-    document.querySelectorAll('.admin-only').forEach(el => el.classList.remove('hidden'));
-  }
 
   switchView('dashboard');
 }
@@ -137,7 +128,7 @@ async function loadDashboard() {
       </div>
     `;
 
-    const colors = ['#3498db', '#27ae60', '#e67e22', '#e74c3c', '#8e44ad', '#1abc9c', '#34495e'];
+    const colors = ['#0078D4', '#107C10', '#FFB900', '#D13438', '#5C2D91', '#008272', '#005A9E'];
     const chartsGrid = document.getElementById('chartsGrid');
     chartsGrid.innerHTML = `
       <div class="panel">
@@ -384,26 +375,22 @@ async function loadAdminTable(tableName) {
     const container = document.getElementById(`table${capitalize(tableName)}`);
     if (!container) return;
 
-    const isAdmin = currentUser && currentUser.rol === 'admin';
-
     container.innerHTML = `
       <table class="data-table">
         <thead>
           <tr>
             ${schema.displayCols.map(c => `<th>${schema.labels[c] || c}</th>`).join('')}
-            ${isAdmin ? '<th>Acciones</th>' : ''}
+            <th>Acciones</th>
           </tr>
         </thead>
         <tbody>
           ${data.map(row => `
             <tr>
               ${schema.displayCols.map(c => `<td>${esc(row[c])}</td>`).join('')}
-              ${isAdmin ? `
-                <td class="actions">
-                  <button class="btn btn-sm btn-primary" onclick="openEditModal('${tableName}', '${esc(row[schema.pk])}')"><i class="fas fa-edit"></i></button>
-                  <button class="btn btn-sm btn-danger" onclick="deleteRecord('${tableName}', '${esc(row[schema.pk])}')"><i class="fas fa-trash"></i></button>
-                </td>
-              ` : ''}
+              <td class="actions">
+                <button class="btn btn-sm btn-primary" onclick="openEditModal('${tableName}', '${esc(row[schema.pk])}')"><i class="fas fa-edit"></i></button>
+                <button class="btn btn-sm btn-danger" onclick="deleteRecord('${tableName}', '${esc(row[schema.pk])}')"><i class="fas fa-trash"></i></button>
+              </td>
             </tr>
           `).join('')}
           ${data.length === 0 ? `<tr><td colspan="${schema.displayCols.length + 1}" style="text-align:center;color:#888;padding:30px;">No hay registros</td></tr>` : ''}
@@ -513,13 +500,7 @@ function openUserModal() {
         <label>Nombre</label>
         <input type="text" class="form-control" name="nombre" required>
       </div>
-      <div class="form-group">
-        <label>Rol</label>
-        <select class="form-control" name="rol">
-          <option value="admin">Administrador</option>
-          <option value="comercial">Comercial</option>
-        </select>
-      </div>
+      <input type="hidden" name="rol" value="user">
     </div>
   `;
   document.getElementById('modalSave').onclick = async () => {
@@ -586,6 +567,74 @@ function esc(val) {
 
 function capitalize(s) {
   return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+// ============ AI CHAT MOCKUP ============
+let aiChatOpen = false;
+let aiFirstOpen = true;
+
+const aiResponses = [
+  'He revisado tu cartera de oportunidades. Tienes 3 oportunidades con timing "Inmediato" que requieren seguimiento esta semana.',
+  'Seg\u00fan los datos del CRM, la regi\u00f3n con mayor n\u00famero de entidades es Europa. Te recomiendo priorizar los contactos con probabilidad "Muy Alta".',
+  'Puedo ayudarte a preparar un resumen ejecutivo de las oportunidades abiertas. \u00bfQuieres que lo genere por regi\u00f3n o por contraparte?',
+  'He detectado que hay 2 contactos sin actividad en los \u00faltimos 30 d\u00edas. Te sugiero agendar una llamada de seguimiento.',
+  'El an\u00e1lisis de tu pipeline muestra un volumen potencial significativo. Las oportunidades en fase de negociaci\u00f3n representan el mayor porcentaje.',
+  'Para optimizar tu estrategia comercial, te recomiendo revisar las entidades con NDA pr\u00f3ximo a expirar en los pr\u00f3ximos 60 d\u00edas.',
+  'Puedo generar un informe comparativo entre regiones. \u00bfPrefieres un an\u00e1lisis por volumen, por n\u00famero de oportunidades, o ambos?',
+  '\u00a1Buena pregunta! Seg\u00fan los datos actuales, el mercado asi\u00e1tico muestra tendencia de crecimiento. Hay 5 entidades nuevas este trimestre.',
+];
+
+function toggleAiChat() {
+  aiChatOpen = !aiChatOpen;
+  const panel = document.getElementById('aiChatPanel');
+  const fab = document.getElementById('aiChatFab');
+
+  if (aiChatOpen) {
+    panel.classList.add('active');
+    fab.classList.add('active');
+    if (aiFirstOpen) {
+      aiFirstOpen = false;
+      addAiMessage('bot', '\u00a1Hola! Soy el Asistente IA del CRM GNL. Puedo ayudarte con an\u00e1lisis de datos, seguimiento de oportunidades y recomendaciones comerciales. \u00bfEn qu\u00e9 puedo ayudarte?');
+    }
+    document.getElementById('aiChatInput').focus();
+  } else {
+    panel.classList.remove('active');
+    fab.classList.remove('active');
+  }
+}
+
+function addAiMessage(type, text) {
+  const container = document.getElementById('aiChatMessages');
+  const msg = document.createElement('div');
+  msg.className = `ai-msg ${type}`;
+  msg.textContent = text;
+  container.appendChild(msg);
+  container.scrollTop = container.scrollHeight;
+}
+
+function sendAiMessage() {
+  const input = document.getElementById('aiChatInput');
+  const text = input.value.trim();
+  if (!text) return;
+
+  addAiMessage('user', text);
+  input.value = '';
+
+  // Show typing indicator
+  const container = document.getElementById('aiChatMessages');
+  const typing = document.createElement('div');
+  typing.className = 'ai-typing';
+  typing.innerHTML = '<span></span><span></span><span></span>';
+  container.appendChild(typing);
+  container.scrollTop = container.scrollHeight;
+
+  // Respond after 1-2 seconds
+  const delay = 1000 + Math.random() * 1000;
+  setTimeout(() => {
+    typing.remove();
+    const response = aiResponses[Math.floor(Math.random() * aiResponses.length)];
+    addAiMessage('bot', response);
+  }, delay);
 }
 
 // ============ INIT ============
