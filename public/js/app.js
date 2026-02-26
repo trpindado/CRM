@@ -493,8 +493,8 @@ const tableSchemas = {
   usuarios: {
     endpoint: 'usuarios',
     pk: 'id',
-    columns: ['username', 'nombre', 'rol'],
-    labels: { username: 'Usuario', nombre: 'Nombre', rol: 'Rol' },
+    columns: ['username', 'password', 'nombre', 'rol'],
+    labels: { username: 'Usuario', password: 'Contraseña', nombre: 'Nombre', rol: 'Rol' },
     displayCols: ['username', 'nombre', 'rol'],
   },
 };
@@ -590,10 +590,12 @@ function buildForm(schema, data, options = {}) {
         </div>`;
     }
 
+    const inputType = col === 'password' ? 'password' : 'text';
+    const placeholder = col === 'password' && data[col] !== undefined ? 'Dejar vacío para no cambiar' : '';
     return `
       <div class="form-group">
         <label>${schema.labels[col] || col}</label>
-        <input type="text" class="form-control" name="${col}" value="${esc(data[col] || '')}" ${isPk ? 'readonly' : ''}>
+        <input type="${inputType}" class="form-control" name="${col}" value="${esc(data[col] || '')}" placeholder="${placeholder}" ${isPk ? 'readonly' : ''}>
       </div>`;
   }).join('')}</div>`;
 }

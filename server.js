@@ -211,6 +211,26 @@ app.post('/api/usuarios', requireAuth, (req, res) => {
   }
 });
 
+app.get('/api/usuarios/:id', requireAuth, (req, res) => {
+  const user = db.getDb().prepare('SELECT id, username, nombre, rol FROM Usuarios WHERE id = ?').get(req.params.id);
+  if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
+  res.json(user);
+});
+
+app.put('/api/usuarios/:id', requireAuth, (req, res) => {
+  try {
+    const { username, nombre, rol, password } = req.body;
+    if (password) {
+      db.getDb().prepare('UPDATE Usuarios SET username = ?, nombre = ?, rol = ?, password = ? WHERE id = ?').run(username, nombre, rol, password, req.params.id);
+    } else {
+      db.getDb().prepare('UPDATE Usuarios SET username = ?, nombre = ?, rol = ? WHERE id = ?').run(username, nombre, rol, req.params.id);
+    }
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(400).json({ error: e.message });
+  }
+});
+
 app.delete('/api/usuarios/:id', requireAuth, (req, res) => {
   db.getDb().prepare('DELETE FROM Usuarios WHERE id = ?').run(req.params.id);
   res.json({ ok: true });
@@ -242,5 +262,4 @@ app.get('/{*splat}', (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`CRM GNL corriendo en http://localhost:${PORT}`);
-  console.log(`  Usuario: admin / admin123`);
 });
