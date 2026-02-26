@@ -195,13 +195,20 @@ app.post('/api/import', requireAuth, upload.single('file'), (req, res) => {
   }
 });
 
-// ============ USERS MANAGEMENT (admin only) ============
-app.get('/api/usuarios', requireAuth, (req, res) => {
+// ============ USERS MANAGEMENT ============
+function requireAdmin(req, res, next) {
+  if (req.session && req.session.user && req.session.user.rol === 'admin') return next();
+  res.status(403).json({ error: 'Solo administradores' });
+}
+
+// Admin: list all users
+app.get('/api/usuarios', requireAdmin, (req, res) => {
   const users = db.getDb().prepare('SELECT id, username, nombre, rol FROM Usuarios').all();
   res.json(users);
 });
 
-app.post('/api/usuarios', requireAuth, (req, res) => {
+// Admin: create user
+app.post('/api/usuarios', requireAdmin, (req, res) => {
   try {
     const { username, password, nombre, rol } = req.body;
     db.getDb().prepare('INSERT INTO Usuarios (username, password, nombre, rol) VALUES (?, ?, ?, ?)').run(username, password, nombre, rol);
@@ -211,13 +218,15 @@ app.post('/api/usuarios', requireAuth, (req, res) => {
   }
 });
 
-app.get('/api/usuarios/:id', requireAuth, (req, res) => {
-  const user = db.getDb().prepare('SELECT id, username, nombre, rol FROM Usuarios WHERE id = ?').get(req.params.id);
+// Admin: get user by id (includes password)
+app.get('/api/usuarios/:id', requireAdmin, (req, res) => {
+  const user = db.getDb().prepare('SELECT id, username, password, nombre, rol FROM Usuarios WHERE id = ?').get(req.params.id);
   if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
   res.json(user);
 });
 
-app.put('/api/usuarios/:id', requireAuth, (req, res) => {
+// Admin: update any user
+app.put('/api/usuarios/:id', requireAdmin, (req, res) => {
   try {
     const { username, nombre, rol, password } = req.body;
     if (password) {
@@ -231,9 +240,31 @@ app.put('/api/usuarios/:id', requireAuth, (req, res) => {
   }
 });
 
-app.delete('/api/usuarios/:id', requireAuth, (req, res) => {
+// Admin: delete user
+app.delete('/api/usuarios/:id', requireAdmin, (req, res) => {
   db.getDb().prepare('DELETE FROM Usuarios WHERE id = ?').run(req.params.id);
   res.json({ ok: true });
+});
+
+// Any user: get own profile
+app.get('/api/mi-perfil', requireAuth, (req, res) => {
+  const user = db.getDb().prepare('SELECT id, username, password, nombre, rol FROM Usuarios WHERE id = ?').get(req.session.user.id);
+  if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
+  res.json(user);
+});
+
+// Any user: update own password
+app.put('/api/mi-perfil', requireAuth, (req, res) => {
+  try {
+    const { password } = req.body;
+    if (!password || password.trim() === '') {
+      return res.status(400).json({ error: 'La contraseña no puede estar vacía' });
+    }
+    db.getDb().prepare('UPDATE Usuarios SET password = ? WHERE id = ?').run(password, req.session.user.id);
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(400).json({ error: e.message });
+  }
 });
 
 // ============ ENTIDADES LIST (lightweight for dropdowns) ============

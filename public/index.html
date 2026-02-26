@@ -72,7 +72,7 @@
         <button class="nav-item" data-view="admin-import">
           <i class="fas fa-file-upload"></i> Importar Datos
         </button>
-        <button class="nav-item" data-view="admin-usuarios">
+        <button class="nav-item" data-view="admin-usuarios" id="navUsuarios" style="display:none">
           <i class="fas fa-users-cog"></i> Usuarios
         </button>
       </div>
@@ -85,6 +85,9 @@
             <div class="user-role" id="userRole">admin</div>
           </div>
         </div>
+        <button class="btn btn-outline" style="width:100%;color:rgba(255,255,255,0.7);border-color:rgba(255,255,255,0.2);margin-bottom:8px;" onclick="openMyProfileModal()">
+          <i class="fas fa-key"></i> Mi Contrase&ntilde;a
+        </button>
         <button class="btn btn-outline" style="width:100%;color:rgba(255,255,255,0.7);border-color:rgba(255,255,255,0.2);" onclick="logout()">
           <i class="fas fa-sign-out-alt"></i> Cerrar Sesi&oacute;n
         </button>

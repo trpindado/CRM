@@ -65,8 +65,12 @@ function showApp() {
   document.getElementById('appPage').classList.remove('hidden');
 
   document.getElementById('userName').textContent = currentUser.nombre;
-  document.getElementById('userRole').textContent = 'Usuario';
+  document.getElementById('userRole').textContent = currentUser.rol === 'admin' ? 'Administrador' : 'Usuario';
   document.getElementById('userAvatar').textContent = currentUser.nombre[0];
+
+  // Show/hide admin-only menu items
+  const navUsuarios = document.getElementById('navUsuarios');
+  if (navUsuarios) navUsuarios.style.display = currentUser.rol === 'admin' ? '' : 'none';
 
   switchView('dashboard');
 }
@@ -106,23 +110,23 @@ async function loadDashboard() {
     const stats = await api('/api/dashboard');
     const grid = document.getElementById('statsGrid');
     grid.innerHTML = `
-      <div class="stat-card">
+      <div class="stat-card" style="cursor:pointer" onclick="switchView('admin-entidades')">
         <div class="stat-icon blue"><i class="fas fa-building"></i></div>
         <div><div class="stat-number">${stats.totalEntidades}</div><div class="stat-label">Entidades</div></div>
       </div>
-      <div class="stat-card">
+      <div class="stat-card" style="cursor:pointer" onclick="switchView('admin-contactos')">
         <div class="stat-icon green"><i class="fas fa-address-book"></i></div>
         <div><div class="stat-number">${stats.totalContactos}</div><div class="stat-label">Contactos</div></div>
       </div>
-      <div class="stat-card">
+      <div class="stat-card" style="cursor:pointer" onclick="switchView('admin-oportunidades')">
         <div class="stat-icon orange"><i class="fas fa-handshake"></i></div>
         <div><div class="stat-number">${stats.totalOportunidades}</div><div class="stat-label">Oportunidades</div></div>
       </div>
-      <div class="stat-card">
+      <div class="stat-card" style="cursor:pointer" onclick="switchView('admin-documentos')">
         <div class="stat-icon red"><i class="fas fa-file-alt"></i></div>
         <div><div class="stat-number">${stats.totalDocumentos}</div><div class="stat-label">Documentos</div></div>
       </div>
-      <div class="stat-card">
+      <div class="stat-card" style="cursor:pointer" onclick="switchView('admin-paises')">
         <div class="stat-icon purple"><i class="fas fa-globe"></i></div>
         <div><div class="stat-number">${stats.totalPaises}</div><div class="stat-label">Pa&iacute;ses</div></div>
       </div>
@@ -133,19 +137,19 @@ async function loadDashboard() {
     chartsGrid.innerHTML = `
       <div class="panel">
         <div class="panel-header"><h3>Entidades por Regi&oacute;n</h3></div>
-        <div class="panel-body">${renderBarChart(stats.entidadesPorRegion, 'Region', 'total', colors)}</div>
+        <div class="panel-body">${renderBarChart(stats.entidadesPorRegion, 'Region', 'total', colors, 'admin-entidades', 'Region')}</div>
       </div>
       <div class="panel">
         <div class="panel-header"><h3>Entidades por Tipo</h3></div>
-        <div class="panel-body">${renderBarChart(stats.entidadesPorTipo, 'Tipo', 'total', colors)}</div>
+        <div class="panel-body">${renderBarChart(stats.entidadesPorTipo, 'Tipo', 'total', colors, 'admin-entidades', 'Tipo')}</div>
       </div>
       <div class="panel">
         <div class="panel-header"><h3>Oportunidades por Timing</h3></div>
-        <div class="panel-body">${renderBarChart(stats.oportunidadesPorTiming, 'Timing', 'total', colors)}</div>
+        <div class="panel-body">${renderBarChart(stats.oportunidadesPorTiming, 'Timing', 'total', colors, 'admin-oportunidades', 'Timing')}</div>
       </div>
       <div class="panel">
         <div class="panel-header"><h3>Contactos por Probabilidad</h3></div>
-        <div class="panel-body">${renderBarChart(stats.probabilidadContactos, 'ProbabilidadExito', 'total', colors)}</div>
+        <div class="panel-body">${renderBarChart(stats.probabilidadContactos, 'ProbabilidadExito', 'total', colors, 'admin-contactos', 'ProbabilidadExito')}</div>
       </div>
     `;
   } catch (e) {
@@ -153,19 +157,22 @@ async function loadDashboard() {
   }
 }
 
-function renderBarChart(data, labelKey, valueKey, colors) {
+function renderBarChart(data, labelKey, valueKey, colors, targetView, filterField) {
   if (!data || data.length === 0) return '<p style="color:#888;">Sin datos</p>';
   const max = Math.max(...data.map(d => d[valueKey]));
-  return data.map((d, i) => `
-    <div class="chart-bar">
-      <div class="chart-bar-label">${d[labelKey] || 'N/A'}</div>
+  return data.map((d, i) => {
+    const label = d[labelKey] || 'N/A';
+    const clickAttr = targetView ? `onclick="navigateWithFilter('${targetView}', '${filterField}', '${esc(label)}')" style="cursor:pointer"` : '';
+    return `
+    <div class="chart-bar" ${clickAttr}>
+      <div class="chart-bar-label">${label}</div>
       <div class="chart-bar-track">
         <div class="chart-bar-fill" style="width:${(d[valueKey] / max * 100)}%;background:${colors[i % colors.length]}">
           ${d[valueKey]}
         </div>
       </div>
-    </div>
-  `).join('');
+    </div>`;
+  }).join('');
 }
 
 // ============ SEARCH ============
@@ -499,16 +506,37 @@ const tableSchemas = {
   },
 };
 
+let pendingFilter = null;
+
+function navigateWithFilter(view, field, value) {
+  pendingFilter = { field, value };
+  switchView(view);
+}
+
 async function loadAdminTable(tableName) {
   const schema = tableSchemas[tableName];
   if (!schema) return;
 
   try {
-    const data = await api(`/api/${schema.endpoint}`);
+    let url = `/api/${schema.endpoint}`;
+    let activeFilter = null;
+    if (pendingFilter) {
+      activeFilter = pendingFilter;
+      url += `?${encodeURIComponent(pendingFilter.field)}=${encodeURIComponent(pendingFilter.value)}`;
+      pendingFilter = null;
+    }
+    const data = await api(url);
     const container = document.getElementById(`table${capitalize(tableName)}`);
     if (!container) return;
 
-    container.innerHTML = `
+    const filterBanner = activeFilter
+      ? `<div style="margin-bottom:12px;padding:8px 16px;background:#e8f0fe;border-radius:6px;display:flex;align-items:center;justify-content:space-between;">
+          <span><i class="fas fa-filter" style="color:#0078D4;margin-right:8px;"></i> Filtro: <strong>${esc(activeFilter.field)}</strong> = <strong>${esc(activeFilter.value)}</strong> (${data.length} resultados)</span>
+          <button class="btn btn-sm" onclick="loadAdminTable('${tableName}')" style="background:#fff;border:1px solid #ccc;cursor:pointer;"><i class="fas fa-times"></i> Quitar filtro</button>
+        </div>`
+      : '';
+
+    container.innerHTML = filterBanner + `
       <table class="data-table">
         <thead>
           <tr>
@@ -590,8 +618,8 @@ function buildForm(schema, data, options = {}) {
         </div>`;
     }
 
-    const inputType = col === 'password' ? 'password' : 'text';
-    const placeholder = col === 'password' && data[col] !== undefined ? 'Dejar vacío para no cambiar' : '';
+    const inputType = 'text';
+    const placeholder = col === 'password' && !data[col] ? 'Dejar vacío para no cambiar' : '';
     return `
       <div class="form-group">
         <label>${schema.labels[col] || col}</label>
@@ -834,6 +862,48 @@ async function sendAiMessage() {
   } catch (e) {
     typing.remove();
     addAiMessage('bot', 'Error al procesar la consulta: ' + e.message);
+  }
+}
+
+// ============ MY PROFILE (password change) ============
+async function openMyProfileModal() {
+  try {
+    const profile = await api('/api/mi-perfil');
+    document.getElementById('modalTitle').textContent = 'Mi Contraseña';
+    document.getElementById('modalBody').innerHTML = `
+      <div class="form-row">
+        <div class="form-group">
+          <label>Usuario</label>
+          <input type="text" class="form-control" value="${esc(profile.username)}" readonly style="background:#f0f0f0;">
+        </div>
+        <div class="form-group">
+          <label>Nombre</label>
+          <input type="text" class="form-control" value="${esc(profile.nombre)}" readonly style="background:#f0f0f0;">
+        </div>
+        <div class="form-group">
+          <label>Contraseña actual</label>
+          <input type="text" class="form-control" value="${esc(profile.password)}" readonly style="background:#f0f0f0;">
+        </div>
+        <div class="form-group">
+          <label>Nueva contraseña</label>
+          <input type="text" class="form-control" name="newPassword" placeholder="Escribir nueva contraseña">
+        </div>
+      </div>
+    `;
+    document.getElementById('modalSave').onclick = async () => {
+      const newPass = document.querySelector('#modalBody input[name="newPassword"]').value.trim();
+      if (!newPass) { toast('Escribe una nueva contraseña', 'error'); return; }
+      try {
+        await api('/api/mi-perfil', { method: 'PUT', body: JSON.stringify({ password: newPass }) });
+        toast('Contraseña actualizada correctamente');
+        closeModal();
+      } catch (e) {
+        toast(e.message, 'error');
+      }
+    };
+    document.getElementById('modalOverlay').classList.add('active');
+  } catch (e) {
+    toast(e.message, 'error');
   }
 }
 
