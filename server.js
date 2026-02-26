@@ -26,6 +26,7 @@ const upload = multer({ dest: path.join(__dirname, 'uploads') });
 
 // Init database
 db.initSchema();
+db.runMigrations();
 
 // Auth middleware
 function requireAuth(req, res, next) {
@@ -76,9 +77,9 @@ app.get('/api/entidades/:codigo/detail', requireAuth, (req, res) => {
 const tableConfig = {
   paises: { table: 'Pais', pk: 'CodigoPaisNormalizado' },
   entidades: { table: 'Entidades', pk: 'CodigoEntidad' },
-  contactos: { table: 'Contactos', pk: 'id' },
-  oportunidades: { table: 'Oportunidades', pk: 'id' },
-  documentos: { table: 'Documentos', pk: 'id' },
+  contactos: { table: 'Contactos', pk: 'id', codeField: 'CodigoContacto', codePrefix: 'CON', requiresEntity: true },
+  oportunidades: { table: 'Oportunidades', pk: 'id', codeField: 'CodigoOportunidad', codePrefix: 'OPO', requiresEntity: true },
+  documentos: { table: 'Documentos', pk: 'id', codeField: 'CodigoDocumento', codePrefix: 'DOC', requiresEntity: true },
 };
 
 Object.entries(tableConfig).forEach(([route, config]) => {
@@ -99,6 +100,19 @@ Object.entries(tableConfig).forEach(([route, config]) => {
   // POST create
   app.post(`/api/${route}`, requireAuth, (req, res) => {
     try {
+      // Validate CodigoEntidad if required
+      if (config.requiresEntity) {
+        if (!req.body.CodigoEntidad || req.body.CodigoEntidad.trim() === '') {
+          return res.status(400).json({ error: 'CodigoEntidad es obligatorio' });
+        }
+        if (!db.entityExists(req.body.CodigoEntidad)) {
+          return res.status(400).json({ error: `La entidad "${req.body.CodigoEntidad}" no existe` });
+        }
+      }
+      // Auto-generate code if applicable
+      if (config.codeField && (!req.body[config.codeField] || req.body[config.codeField].trim() === '')) {
+        req.body[config.codeField] = db.generateNextCode(config.table, config.codeField, config.codePrefix);
+      }
       const result = db.insert(config.table, req.body);
       res.json({ ok: true, id: result.lastInsertRowid });
     } catch (e) {
@@ -109,6 +123,15 @@ Object.entries(tableConfig).forEach(([route, config]) => {
   // PUT update
   app.put(`/api/${route}/:id`, requireAuth, (req, res) => {
     try {
+      // Validate CodigoEntidad if required and changed
+      if (config.requiresEntity && req.body.CodigoEntidad) {
+        if (req.body.CodigoEntidad.trim() === '') {
+          return res.status(400).json({ error: 'CodigoEntidad es obligatorio' });
+        }
+        if (!db.entityExists(req.body.CodigoEntidad)) {
+          return res.status(400).json({ error: `La entidad "${req.body.CodigoEntidad}" no existe` });
+        }
+      }
       db.update(config.table, config.pk, req.params.id, req.body);
       res.json({ ok: true });
     } catch (e) {
@@ -191,6 +214,25 @@ app.post('/api/usuarios', requireAuth, (req, res) => {
 app.delete('/api/usuarios/:id', requireAuth, (req, res) => {
   db.getDb().prepare('DELETE FROM Usuarios WHERE id = ?').run(req.params.id);
   res.json({ ok: true });
+});
+
+// ============ ENTIDADES LIST (lightweight for dropdowns) ============
+app.get('/api/entidades-list', requireAuth, (req, res) => {
+  res.json(db.getEntidadesList());
+});
+
+// ============ AI CHAT ============
+app.post('/api/ai/chat', requireAuth, (req, res) => {
+  try {
+    const { message } = req.body;
+    if (!message || message.trim() === '') {
+      return res.status(400).json({ error: 'Mensaje vacío' });
+    }
+    const response = db.processAiQuery(message);
+    res.json({ response });
+  } catch (e) {
+    res.status(500).json({ error: 'Error procesando consulta: ' + e.message });
+  }
 });
 
 // SPA fallback

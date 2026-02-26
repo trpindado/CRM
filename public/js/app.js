@@ -218,17 +218,20 @@ async function viewEntity(codigo) {
           <h2>${esc(e.Compania)}</h2>
           <div class="entity-code">${esc(e.CodigoEntidad)} &middot; ${esc(e.PaisNombre || '')} &middot; <span class="badge badge-${e.Tipo === 'Matriz' ? 'purple' : 'gray'}">${esc(e.Tipo)}</span></div>
         </div>
+        <button class="btn btn-primary" onclick="toggleEntityEdit('${esc(e.CodigoEntidad)}')" id="btnEditEntity" style="margin-left:auto;"><i class="fas fa-edit"></i> Editar</button>
       </div>
 
-      <div class="detail-grid">
-        <div class="detail-item"><div class="label">Regi&oacute;n</div><div class="value">${esc(e.Region)}</div></div>
-        <div class="detail-item"><div class="label">Pa&iacute;s</div><div class="value">${esc(e.PaisNombre || e.CodigoPaisNormalizado)}</div></div>
-        <div class="detail-item"><div class="label">Fiscal Code</div><div class="value">${esc(e.FiscalCode)}</div></div>
-        <div class="detail-item"><div class="label">LEI</div><div class="value">${esc(e.LEI)}</div></div>
-        <div class="detail-item"><div class="label">Ticker</div><div class="value">${esc(e.Ticker)}</div></div>
-        <div class="detail-item"><div class="label">DUNS</div><div class="value">${esc(e.DunsNumber)}</div></div>
-        <div class="detail-item"><div class="label">Direcci&oacute;n</div><div class="value">${esc(e.Direccion)}</div></div>
-        <div class="detail-item"><div class="label">Comentarios</div><div class="value">${esc(e.Comentarios)}</div></div>
+      <div id="entityDetailFields" data-codigo="${esc(e.CodigoEntidad)}">
+        <div class="detail-grid">
+          <div class="detail-item"><div class="label">Regi&oacute;n</div><div class="value">${esc(e.Region)}</div></div>
+          <div class="detail-item"><div class="label">Pa&iacute;s</div><div class="value">${esc(e.PaisNombre || e.CodigoPaisNormalizado)}</div></div>
+          <div class="detail-item"><div class="label">Fiscal Code</div><div class="value">${esc(e.FiscalCode)}</div></div>
+          <div class="detail-item"><div class="label">LEI</div><div class="value">${esc(e.LEI)}</div></div>
+          <div class="detail-item"><div class="label">Ticker</div><div class="value">${esc(e.Ticker)}</div></div>
+          <div class="detail-item"><div class="label">DUNS</div><div class="value">${esc(e.DunsNumber)}</div></div>
+          <div class="detail-item"><div class="label">Direcci&oacute;n</div><div class="value">${esc(e.Direccion)}</div></div>
+          <div class="detail-item"><div class="label">Comentarios</div><div class="value">${esc(e.Comentarios)}</div></div>
+        </div>
       </div>
 
       <div class="tabs">
@@ -238,12 +241,14 @@ async function viewEntity(codigo) {
       </div>
 
       <div class="tab-content active" id="tabContactos">
+        <div style="margin-bottom:10px;"><button class="btn btn-sm btn-success" onclick="openCreateModalForEntity('contactos','${esc(e.CodigoEntidad)}')"><i class="fas fa-plus"></i> Nuevo Contacto</button></div>
         <div class="table-wrapper">
           <table class="data-table">
-            <thead><tr><th>Nombre</th><th>Cargo</th><th>Email</th><th>Tel&eacute;fono</th><th>V&iacute;a</th><th>&Uacute;ltimo Contacto</th><th>Probabilidad</th><th>LinkedIn</th></tr></thead>
+            <thead><tr><th>Codigo</th><th>Nombre</th><th>Cargo</th><th>Email</th><th>Tel&eacute;fono</th><th>V&iacute;a</th><th>&Uacute;ltimo Contacto</th><th>Probabilidad</th><th>LinkedIn</th><th>Acciones</th></tr></thead>
             <tbody>
               ${detail.contactos.map(c => `
                 <tr>
+                  <td><span class="badge badge-blue">${esc(c.CodigoContacto)}</span></td>
                   <td><strong>${esc(c.Nombre)}</strong></td>
                   <td>${esc(c.Cargo)}</td>
                   <td><a href="mailto:${esc(c.Email)}">${esc(c.Email)}</a></td>
@@ -252,21 +257,27 @@ async function viewEntity(codigo) {
                   <td>${esc(c.FechaUltimoContacto)}</td>
                   <td><span class="badge badge-${probColors[c.ProbabilidadExito] || 'gray'}">${esc(c.ProbabilidadExito)}</span></td>
                   <td>${c.Linkedin ? `<a href="https://${esc(c.Linkedin)}" target="_blank"><i class="fab fa-linkedin"></i></a>` : '-'}</td>
+                  <td class="actions">
+                    <button class="btn btn-sm btn-primary" onclick="openEditModalForEntity('contactos','${c.id}','${esc(e.CodigoEntidad)}')"><i class="fas fa-edit"></i></button>
+                    <button class="btn btn-sm btn-danger" onclick="deleteAndReload('contactos','${c.id}','${esc(e.CodigoEntidad)}')"><i class="fas fa-trash"></i></button>
+                  </td>
                 </tr>
               `).join('')}
-              ${detail.contactos.length === 0 ? '<tr><td colspan="8" style="text-align:center;color:#888;padding:20px;">Sin contactos</td></tr>' : ''}
+              ${detail.contactos.length === 0 ? '<tr><td colspan="10" style="text-align:center;color:#888;padding:20px;">Sin contactos</td></tr>' : ''}
             </tbody>
           </table>
         </div>
       </div>
 
       <div class="tab-content" id="tabOportunidades">
+        <div style="margin-bottom:10px;"><button class="btn btn-sm btn-success" onclick="openCreateModalForEntity('oportunidades','${esc(e.CodigoEntidad)}')"><i class="fas fa-plus"></i> Nueva Oportunidad</button></div>
         <div class="table-wrapper">
           <table class="data-table">
-            <thead><tr><th>Contraparte</th><th>Owner</th><th>Entrega</th><th>Periodo</th><th>Volumen</th><th>Precio</th><th>Timing</th><th>Origen</th><th>Pr&oacute;x. Pasos NTGY</th></tr></thead>
+            <thead><tr><th>Codigo</th><th>Contraparte</th><th>Owner</th><th>Entrega</th><th>Periodo</th><th>Volumen</th><th>Precio</th><th>Timing</th><th>Origen</th><th>Pr&oacute;x. Pasos NTGY</th><th>Acciones</th></tr></thead>
             <tbody>
               ${detail.oportunidades.map(o => `
                 <tr>
+                  <td><span class="badge badge-blue">${esc(o.CodigoOportunidad)}</span></td>
                   <td><strong>${esc(o.Contraparte)}</strong></td>
                   <td>${esc(o.OwnerAccount)}</td>
                   <td><span class="badge badge-blue">${esc(o.Entrega)}</span></td>
@@ -276,21 +287,27 @@ async function viewEntity(codigo) {
                   <td><span class="badge badge-${o.Timing === 'Inmediato' ? 'green' : 'orange'}">${esc(o.Timing)}</span></td>
                   <td>${esc(o.Origen)}</td>
                   <td>${esc(o.ProximosPasosNTGY)}</td>
+                  <td class="actions">
+                    <button class="btn btn-sm btn-primary" onclick="openEditModalForEntity('oportunidades','${o.id}','${esc(e.CodigoEntidad)}')"><i class="fas fa-edit"></i></button>
+                    <button class="btn btn-sm btn-danger" onclick="deleteAndReload('oportunidades','${o.id}','${esc(e.CodigoEntidad)}')"><i class="fas fa-trash"></i></button>
+                  </td>
                 </tr>
               `).join('')}
-              ${detail.oportunidades.length === 0 ? '<tr><td colspan="9" style="text-align:center;color:#888;padding:20px;">Sin oportunidades</td></tr>' : ''}
+              ${detail.oportunidades.length === 0 ? '<tr><td colspan="11" style="text-align:center;color:#888;padding:20px;">Sin oportunidades</td></tr>' : ''}
             </tbody>
           </table>
         </div>
       </div>
 
       <div class="tab-content" id="tabDocumentos">
+        <div style="margin-bottom:10px;"><button class="btn btn-sm btn-success" onclick="openCreateModalForEntity('documentos','${esc(e.CodigoEntidad)}')"><i class="fas fa-plus"></i> Nuevo Documento</button></div>
         <div class="table-wrapper">
           <table class="data-table">
-            <thead><tr><th>KYC</th><th>Link KYC</th><th>NDA</th><th>Expiraci&oacute;n NDA</th><th>Link NDA</th><th>MSPA</th><th>Link MSPA</th><th>Comentarios</th></tr></thead>
+            <thead><tr><th>Codigo</th><th>KYC</th><th>Link KYC</th><th>NDA</th><th>Expiraci&oacute;n NDA</th><th>Link NDA</th><th>MSPA</th><th>Link MSPA</th><th>Comentarios</th><th>Acciones</th></tr></thead>
             <tbody>
               ${detail.documentos.map(d => `
                 <tr>
+                  <td><span class="badge badge-blue">${esc(d.CodigoDocumento)}</span></td>
                   <td><span class="badge badge-${d.KYC_S_N === 'S\u00ed' ? 'green' : 'red'}">${esc(d.KYC_S_N)}</span></td>
                   <td>${d.KYC_link ? `<a href="${esc(d.KYC_link)}" target="_blank"><i class="fas fa-external-link-alt"></i> Ver</a>` : '-'}</td>
                   <td><span class="badge badge-${d.NDA_S_N === 'S\u00ed' ? 'green' : 'red'}">${esc(d.NDA_S_N)}</span></td>
@@ -299,14 +316,124 @@ async function viewEntity(codigo) {
                   <td><span class="badge badge-${d.MSPASN === 'S\u00ed' ? 'green' : 'red'}">${esc(d.MSPASN)}</span></td>
                   <td>${d.LinkMSPA ? `<a href="${esc(d.LinkMSPA)}" target="_blank"><i class="fas fa-external-link-alt"></i> Ver</a>` : '-'}</td>
                   <td>${esc(d.Comentarios)}</td>
+                  <td class="actions">
+                    <button class="btn btn-sm btn-primary" onclick="openEditModalForEntity('documentos','${d.id}','${esc(e.CodigoEntidad)}')"><i class="fas fa-edit"></i></button>
+                    <button class="btn btn-sm btn-danger" onclick="deleteAndReload('documentos','${d.id}','${esc(e.CodigoEntidad)}')"><i class="fas fa-trash"></i></button>
+                  </td>
                 </tr>
               `).join('')}
-              ${detail.documentos.length === 0 ? '<tr><td colspan="8" style="text-align:center;color:#888;padding:20px;">Sin documentos</td></tr>' : ''}
+              ${detail.documentos.length === 0 ? '<tr><td colspan="10" style="text-align:center;color:#888;padding:20px;">Sin documentos</td></tr>' : ''}
             </tbody>
           </table>
         </div>
       </div>
     `;
+  } catch (e) {
+    toast(e.message, 'error');
+  }
+}
+
+// Toggle entity edit mode
+async function toggleEntityEdit(codigo) {
+  const container = document.getElementById('entityDetailFields');
+  const btn = document.getElementById('btnEditEntity');
+
+  if (container.classList.contains('editing')) {
+    // Cancel edit - reload view
+    viewEntity(codigo);
+    return;
+  }
+
+  try {
+    const entity = await api(`/api/entidades/${codigo}`);
+    const editableFields = [
+      { key: 'Compania', label: 'Compania' },
+      { key: 'Region', label: 'Region' },
+      { key: 'Tipo', label: 'Tipo' },
+      { key: 'CodigoPaisNormalizado', label: 'Codigo Pais' },
+      { key: 'FiscalCode', label: 'Fiscal Code' },
+      { key: 'LEI', label: 'LEI' },
+      { key: 'Ticker', label: 'Ticker' },
+      { key: 'DunsNumber', label: 'DUNS' },
+      { key: 'Direccion', label: 'Direccion' },
+      { key: 'Comentarios', label: 'Comentarios' },
+    ];
+
+    container.classList.add('editing');
+    container.innerHTML = `
+      <div class="detail-grid entity-edit-mode">
+        ${editableFields.map(f => `
+          <div class="detail-item">
+            <div class="label">${f.label}</div>
+            <input type="text" class="form-control" name="${f.key}" value="${esc(entity[f.key] || '')}">
+          </div>
+        `).join('')}
+      </div>
+      <div style="margin-top:12px;display:flex;gap:10px;">
+        <button class="btn btn-success" onclick="saveEntityEdit('${esc(codigo)}')"><i class="fas fa-save"></i> Guardar</button>
+        <button class="btn btn-outline" onclick="viewEntity('${esc(codigo)}')"><i class="fas fa-times"></i> Cancelar</button>
+      </div>
+    `;
+    btn.innerHTML = '<i class="fas fa-times"></i> Cancelar';
+  } catch (e) {
+    toast(e.message, 'error');
+  }
+}
+
+async function saveEntityEdit(codigo) {
+  const container = document.getElementById('entityDetailFields');
+  const data = {};
+  container.querySelectorAll('input').forEach(input => {
+    data[input.name] = input.value || null;
+  });
+
+  try {
+    await api(`/api/entidades/${codigo}`, { method: 'PUT', body: JSON.stringify(data) });
+    toast('Entidad actualizada correctamente');
+    viewEntity(codigo);
+  } catch (e) {
+    toast(e.message, 'error');
+  }
+}
+
+// Open create modal with entity pre-filled and locked
+function openCreateModalForEntity(tableName, codigoEntidad) {
+  const schema = tableSchemas[tableName];
+  if (!schema) return;
+
+  document.getElementById('modalTitle').textContent = `Nuevo registro - ${capitalize(tableName)}`;
+  document.getElementById('modalBody').innerHTML = buildForm(schema, { CodigoEntidad: codigoEntidad }, { lockEntity: true });
+  document.getElementById('modalSave').onclick = () => saveRecord(tableName, null, () => viewEntity(codigoEntidad));
+  document.getElementById('modalOverlay').classList.add('active');
+  // Populate dropdown but it will be disabled/locked
+  populateEntityDropdown(codigoEntidad);
+}
+
+// Open edit modal from entity detail
+async function openEditModalForEntity(tableName, id, codigoEntidad) {
+  const schema = tableSchemas[tableName];
+  if (!schema) return;
+
+  try {
+    const record = await api(`/api/${schema.endpoint}/${id}`);
+    document.getElementById('modalTitle').textContent = `Editar - ${capitalize(tableName)}`;
+    document.getElementById('modalBody').innerHTML = buildForm(schema, record);
+    document.getElementById('modalSave').onclick = () => saveRecord(tableName, id, () => viewEntity(codigoEntidad));
+    document.getElementById('modalOverlay').classList.add('active');
+    if (schema.requiresEntity) populateEntityDropdown(record.CodigoEntidad);
+  } catch (e) {
+    toast(e.message, 'error');
+  }
+}
+
+// Delete sub-record and reload entity detail
+async function deleteAndReload(tableName, id, codigoEntidad) {
+  if (!confirm('¿Estás seguro de que deseas eliminar este registro?')) return;
+  const schema = tableSchemas[tableName];
+  try {
+    await api(`/api/${schema.endpoint}/${id}`, { method: 'DELETE' });
+    toast('Registro eliminado');
+    viewEntity(codigoEntidad);
   } catch (e) {
     toast(e.message, 'error');
   }
@@ -332,23 +459,29 @@ const tableSchemas = {
   contactos: {
     endpoint: 'contactos',
     pk: 'id',
-    columns: ['CodigoEntidad', 'Nombre', 'Cargo', 'Email', 'Telefono1', 'Telefono2', 'Via', 'FechaUltimoContacto', 'DemorarContactoAfecha', 'ProbabilidadExito', 'Linkedin', 'Comentarios'],
-    labels: { CodigoEntidad: 'Entidad', Nombre: 'Nombre', Cargo: 'Cargo', Email: 'Email', Telefono1: 'Telefono 1', Telefono2: 'Telefono 2', Via: 'Via', FechaUltimoContacto: 'Ultimo Contacto', DemorarContactoAfecha: 'Demorar a', ProbabilidadExito: 'Probabilidad', Linkedin: 'LinkedIn', Comentarios: 'Comentarios' },
-    displayCols: ['CodigoEntidad', 'Nombre', 'Cargo', 'Email', 'ProbabilidadExito'],
+    columns: ['CodigoContacto', 'CodigoEntidad', 'Nombre', 'Cargo', 'Email', 'Telefono1', 'Telefono2', 'Via', 'FechaUltimoContacto', 'DemorarContactoAfecha', 'ProbabilidadExito', 'Linkedin', 'Comentarios'],
+    labels: { CodigoContacto: 'Codigo', CodigoEntidad: 'Entidad', Nombre: 'Nombre', Cargo: 'Cargo', Email: 'Email', Telefono1: 'Telefono 1', Telefono2: 'Telefono 2', Via: 'Via', FechaUltimoContacto: 'Ultimo Contacto', DemorarContactoAfecha: 'Demorar a', ProbabilidadExito: 'Probabilidad', Linkedin: 'LinkedIn', Comentarios: 'Comentarios' },
+    displayCols: ['CodigoContacto', 'CodigoEntidad', 'Nombre', 'Cargo', 'Email', 'ProbabilidadExito'],
+    codeField: 'CodigoContacto',
+    requiresEntity: true,
   },
   oportunidades: {
     endpoint: 'oportunidades',
     pk: 'id',
-    columns: ['CodigoEntidad', 'Contraparte', 'OwnerAccount', 'Entrega', 'Periodo', 'Volumen', 'Precio', 'SpecsContrapartePCS', 'ProximosPasosNTGY', 'ProximosPasosContraparte', 'Timing', 'Origen', 'Comentarios'],
-    labels: { CodigoEntidad: 'Entidad', Contraparte: 'Contraparte', OwnerAccount: 'Owner', Entrega: 'Entrega', Periodo: 'Periodo', Volumen: 'Volumen', Precio: 'Precio', SpecsContrapartePCS: 'Specs PCS', ProximosPasosNTGY: 'Prox. NTGY', ProximosPasosContraparte: 'Prox. Contraparte', Timing: 'Timing', Origen: 'Origen', Comentarios: 'Comentarios' },
-    displayCols: ['CodigoEntidad', 'Contraparte', 'OwnerAccount', 'Entrega', 'Periodo', 'Volumen', 'Precio', 'Timing'],
+    columns: ['CodigoOportunidad', 'CodigoEntidad', 'Contraparte', 'OwnerAccount', 'Entrega', 'Periodo', 'Volumen', 'Precio', 'SpecsContrapartePCS', 'ProximosPasosNTGY', 'ProximosPasosContraparte', 'Timing', 'Origen', 'Comentarios'],
+    labels: { CodigoOportunidad: 'Codigo', CodigoEntidad: 'Entidad', Contraparte: 'Contraparte', OwnerAccount: 'Owner', Entrega: 'Entrega', Periodo: 'Periodo', Volumen: 'Volumen', Precio: 'Precio', SpecsContrapartePCS: 'Specs PCS', ProximosPasosNTGY: 'Prox. NTGY', ProximosPasosContraparte: 'Prox. Contraparte', Timing: 'Timing', Origen: 'Origen', Comentarios: 'Comentarios' },
+    displayCols: ['CodigoOportunidad', 'CodigoEntidad', 'Contraparte', 'OwnerAccount', 'Entrega', 'Volumen', 'Precio', 'Timing'],
+    codeField: 'CodigoOportunidad',
+    requiresEntity: true,
   },
   documentos: {
     endpoint: 'documentos',
     pk: 'id',
-    columns: ['CodigoEntidad', 'KYC_S_N', 'KYC_link', 'NDA_S_N', 'FechaExpiracionNDA', 'NDALink', 'MSPASN', 'LinkMSPA', 'Comentarios'],
-    labels: { CodigoEntidad: 'Entidad', KYC_S_N: 'KYC', KYC_link: 'Link KYC', NDA_S_N: 'NDA', FechaExpiracionNDA: 'Exp. NDA', NDALink: 'Link NDA', MSPASN: 'MSPA', LinkMSPA: 'Link MSPA', Comentarios: 'Comentarios' },
-    displayCols: ['CodigoEntidad', 'KYC_S_N', 'NDA_S_N', 'MSPASN', 'Comentarios'],
+    columns: ['CodigoDocumento', 'CodigoEntidad', 'KYC_S_N', 'KYC_link', 'NDA_S_N', 'FechaExpiracionNDA', 'NDALink', 'MSPASN', 'LinkMSPA', 'Comentarios'],
+    labels: { CodigoDocumento: 'Codigo', CodigoEntidad: 'Entidad', KYC_S_N: 'KYC', KYC_link: 'Link KYC', NDA_S_N: 'NDA', FechaExpiracionNDA: 'Exp. NDA', NDALink: 'Link NDA', MSPASN: 'MSPA', LinkMSPA: 'Link MSPA', Comentarios: 'Comentarios' },
+    displayCols: ['CodigoDocumento', 'CodigoEntidad', 'KYC_S_N', 'NDA_S_N', 'MSPASN', 'Comentarios'],
+    codeField: 'CodigoDocumento',
+    requiresEntity: true,
   },
   paises: {
     endpoint: 'paises',
@@ -411,6 +544,7 @@ function openCreateModal(tableName) {
   document.getElementById('modalBody').innerHTML = buildForm(schema, {});
   document.getElementById('modalSave').onclick = () => saveRecord(tableName, null);
   document.getElementById('modalOverlay').classList.add('active');
+  if (schema.requiresEntity) populateEntityDropdown(null);
 }
 
 async function openEditModal(tableName, id) {
@@ -423,29 +557,83 @@ async function openEditModal(tableName, id) {
     document.getElementById('modalBody').innerHTML = buildForm(schema, record);
     document.getElementById('modalSave').onclick = () => saveRecord(tableName, id);
     document.getElementById('modalOverlay').classList.add('active');
+    if (schema.requiresEntity) populateEntityDropdown(record.CodigoEntidad);
   } catch (e) {
     toast(e.message, 'error');
   }
 }
 
-function buildForm(schema, data) {
+function buildForm(schema, data, options = {}) {
   const cols = schema.columns.filter(c => c !== 'id');
-  return `<div class="form-row">${cols.map(col => `
-    <div class="form-group">
-      <label>${schema.labels[col] || col}</label>
-      <input type="text" class="form-control" name="${col}" value="${esc(data[col] || '')}" ${schema.pk === col && data[col] ? 'readonly' : ''}>
-    </div>
-  `).join('')}</div>`;
+  return `<div class="form-row">${cols.map(col => {
+    const isCodeField = schema.codeField && col === schema.codeField;
+    const isPk = schema.pk === col && data[col];
+    const isEntityField = col === 'CodigoEntidad' && schema.requiresEntity;
+    const isLockedEntity = isEntityField && options.lockEntity;
+
+    if (isCodeField) {
+      return `
+        <div class="form-group">
+          <label>${schema.labels[col] || col}</label>
+          <input type="text" class="form-control" name="${col}" value="${esc(data[col] || '')}" readonly placeholder="Auto-generado" style="background:#f0f0f0;">
+        </div>`;
+    }
+
+    if (isEntityField) {
+      return `
+        <div class="form-group">
+          <label>${schema.labels[col] || col}</label>
+          <select class="form-control" name="${col}" id="entityDropdown" ${isLockedEntity ? 'disabled' : ''}>
+            <option value="">-- Seleccionar entidad --</option>
+          </select>
+          ${isLockedEntity ? `<input type="hidden" name="${col}" value="${esc(data[col] || '')}">` : ''}
+        </div>`;
+    }
+
+    return `
+      <div class="form-group">
+        <label>${schema.labels[col] || col}</label>
+        <input type="text" class="form-control" name="${col}" value="${esc(data[col] || '')}" ${isPk ? 'readonly' : ''}>
+      </div>`;
+  }).join('')}</div>`;
 }
 
-async function saveRecord(tableName, id) {
+async function populateEntityDropdown(selectedValue) {
+  try {
+    const entidades = await api('/api/entidades-list');
+    const select = document.getElementById('entityDropdown');
+    if (!select) return;
+    // Keep the first placeholder option
+    select.innerHTML = '<option value="">-- Seleccionar entidad --</option>';
+    entidades.forEach(e => {
+      const opt = document.createElement('option');
+      opt.value = e.CodigoEntidad;
+      opt.textContent = `${e.CodigoEntidad} - ${e.Compania}`;
+      if (e.CodigoEntidad === selectedValue) opt.selected = true;
+      select.appendChild(opt);
+    });
+  } catch (e) {
+    console.error('Error loading entidades list:', e);
+  }
+}
+
+async function saveRecord(tableName, id, callback) {
   const schema = tableSchemas[tableName];
   const form = document.getElementById('modalBody');
   const data = {};
 
   form.querySelectorAll('input, select, textarea').forEach(input => {
-    data[input.name] = input.value || null;
+    if (input.name) {
+      // For disabled select with hidden input, skip the disabled select
+      if (input.tagName === 'SELECT' && input.disabled) return;
+      data[input.name] = input.value || null;
+    }
   });
+
+  // Remove auto-generated code field if empty (server will generate)
+  if (schema.codeField && (!data[schema.codeField] || data[schema.codeField].trim() === '')) {
+    delete data[schema.codeField];
+  }
 
   try {
     if (id) {
@@ -456,7 +644,11 @@ async function saveRecord(tableName, id) {
       toast('Registro creado correctamente');
     }
     closeModal();
-    loadAdminTable(tableName);
+    if (callback) {
+      callback();
+    } else {
+      loadAdminTable(tableName);
+    }
   } catch (e) {
     toast(e.message, 'error');
   }
@@ -569,20 +761,9 @@ function capitalize(s) {
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
-// ============ AI CHAT MOCKUP ============
+// ============ AI CHAT ============
 let aiChatOpen = false;
 let aiFirstOpen = true;
-
-const aiResponses = [
-  'He revisado tu cartera de oportunidades. Tienes 3 oportunidades con timing "Inmediato" que requieren seguimiento esta semana.',
-  'Seg\u00fan los datos del CRM, la regi\u00f3n con mayor n\u00famero de entidades es Europa. Te recomiendo priorizar los contactos con probabilidad "Muy Alta".',
-  'Puedo ayudarte a preparar un resumen ejecutivo de las oportunidades abiertas. \u00bfQuieres que lo genere por regi\u00f3n o por contraparte?',
-  'He detectado que hay 2 contactos sin actividad en los \u00faltimos 30 d\u00edas. Te sugiero agendar una llamada de seguimiento.',
-  'El an\u00e1lisis de tu pipeline muestra un volumen potencial significativo. Las oportunidades en fase de negociaci\u00f3n representan el mayor porcentaje.',
-  'Para optimizar tu estrategia comercial, te recomiendo revisar las entidades con NDA pr\u00f3ximo a expirar en los pr\u00f3ximos 60 d\u00edas.',
-  'Puedo generar un informe comparativo entre regiones. \u00bfPrefieres un an\u00e1lisis por volumen, por n\u00famero de oportunidades, o ambos?',
-  '\u00a1Buena pregunta! Seg\u00fan los datos actuales, el mercado asi\u00e1tico muestra tendencia de crecimiento. Hay 5 entidades nuevas este trimestre.',
-];
 
 function toggleAiChat() {
   aiChatOpen = !aiChatOpen;
@@ -594,7 +775,7 @@ function toggleAiChat() {
     fab.classList.add('active');
     if (aiFirstOpen) {
       aiFirstOpen = false;
-      addAiMessage('bot', '\u00a1Hola! Soy el Asistente IA del CRM GNL. Puedo ayudarte con an\u00e1lisis de datos, seguimiento de oportunidades y recomendaciones comerciales. \u00bfEn qu\u00e9 puedo ayudarte?');
+      addAiMessage('bot', '¡Hola! Soy el Asistente IA del CRM GNL. Consulto datos reales de la base de datos.\n\nPuedes preguntarme sobre:\n- **Nombre de un país** (ej: "India")\n- **"NDA"** o **"documentos"**\n- **"Oportunidades"** o **"pipeline"**\n- **"Próximos pasos"** o **"acciones"**\n- **"Contactos"** o **"seguimiento"**\n- **"Resumen"** o **"dashboard"**');
     }
     document.getElementById('aiChatInput').focus();
   } else {
@@ -603,16 +784,29 @@ function toggleAiChat() {
   }
 }
 
+function formatAiText(text) {
+  // Convert **bold** to <strong>
+  let html = esc(text);
+  html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  // Convert newlines to <br>
+  html = html.replace(/\n/g, '<br>');
+  return html;
+}
+
 function addAiMessage(type, text) {
   const container = document.getElementById('aiChatMessages');
   const msg = document.createElement('div');
   msg.className = `ai-msg ${type}`;
-  msg.textContent = text;
+  if (type === 'bot') {
+    msg.innerHTML = formatAiText(text);
+  } else {
+    msg.textContent = text;
+  }
   container.appendChild(msg);
   container.scrollTop = container.scrollHeight;
 }
 
-function sendAiMessage() {
+async function sendAiMessage() {
   const input = document.getElementById('aiChatInput');
   const text = input.value.trim();
   if (!text) return;
@@ -628,13 +822,17 @@ function sendAiMessage() {
   container.appendChild(typing);
   container.scrollTop = container.scrollHeight;
 
-  // Respond after 1-2 seconds
-  const delay = 1000 + Math.random() * 1000;
-  setTimeout(() => {
+  try {
+    const data = await api('/api/ai/chat', {
+      method: 'POST',
+      body: JSON.stringify({ message: text }),
+    });
     typing.remove();
-    const response = aiResponses[Math.floor(Math.random() * aiResponses.length)];
-    addAiMessage('bot', response);
-  }, delay);
+    addAiMessage('bot', data.response);
+  } catch (e) {
+    typing.remove();
+    addAiMessage('bot', 'Error al procesar la consulta: ' + e.message);
+  }
 }
 
 // ============ INIT ============

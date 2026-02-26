@@ -951,6 +951,32 @@ select.form-control {
   background: var(--primary-dark);
 }
 
+/* Entity edit mode */
+.entity-edit-mode {
+  background: #FFF8E1;
+  border: 1px solid #FFD54F;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.entity-edit-mode .detail-item {
+  background: white;
+  border: 1px solid #E0E0E0;
+}
+
+.entity-edit-mode .form-control {
+  margin-top: 4px;
+}
+
+/* Sub-table action buttons */
+.data-table .actions .btn {
+  margin-right: 4px;
+}
+
+.data-table .actions .btn:last-child {
+  margin-right: 0;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .sidebar {
