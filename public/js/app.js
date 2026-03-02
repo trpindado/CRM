@@ -980,6 +980,49 @@ function capitalize(s) {
 // ============ AI CHAT ============
 let aiChatOpen = false;
 let aiFirstOpen = true;
+let aiUseOpenAI = false;
+let aiOpenAIAvailable = false;
+
+async function checkAiStatus() {
+  try {
+    const data = await api('/api/ai/status');
+    aiOpenAIAvailable = !!data.openaiAvailable;
+  } catch (e) {
+    aiOpenAIAvailable = false;
+  }
+
+  const toggle = document.getElementById('aiToggle');
+  const wrapper = document.getElementById('aiToggleWrapper');
+  if (aiOpenAIAvailable) {
+    toggle.disabled = false;
+    wrapper.title = 'Activar OpenAI GPT-4o-mini';
+    // Restore saved preference
+    const saved = localStorage.getItem('aiUseOpenAI');
+    if (saved === 'true') {
+      toggle.checked = true;
+      aiUseOpenAI = true;
+      updateAiModeLabel();
+    }
+  } else {
+    toggle.disabled = true;
+    wrapper.title = 'Configura OPENAI_API_KEY en .env para activar la IA';
+  }
+}
+
+function onAiToggleChange() {
+  const toggle = document.getElementById('aiToggle');
+  aiUseOpenAI = toggle.checked;
+  localStorage.setItem('aiUseOpenAI', aiUseOpenAI);
+  updateAiModeLabel();
+}
+
+function updateAiModeLabel() {
+  const label = document.getElementById('aiModeLabel');
+  if (label) {
+    label.textContent = aiUseOpenAI ? 'Modo: OpenAI ✦' : 'Modo: Básico';
+    label.className = 'ai-mode-label' + (aiUseOpenAI ? ' ai-mode-openai' : '');
+  }
+}
 
 function toggleAiChat() {
   aiChatOpen = !aiChatOpen;
@@ -991,7 +1034,11 @@ function toggleAiChat() {
     fab.classList.add('active');
     if (aiFirstOpen) {
       aiFirstOpen = false;
-      addAiMessage('bot', '¡Hola! Soy el Asistente IA del CRM GNL. Consulto datos reales de la base de datos.\n\nPuedes preguntarme sobre:\n- **Nombre de un país** (ej: "India")\n- **"NDA"** o **"documentos"**\n- **"Oportunidades"** o **"pipeline"**\n- **"Próximos pasos"** o **"acciones"**\n- **"Contactos"** o **"seguimiento"**\n- **"Resumen"** o **"dashboard"**');
+      checkAiStatus().then(() => {
+        const welcomeBasic = '¡Hola! Soy el Asistente IA del CRM GNL. Consulto datos reales de la base de datos.\n\nPuedes preguntarme sobre:\n- **Nombre de un país** (ej: "India")\n- **"NDA"** o **"documentos"**\n- **"Oportunidades"** o **"pipeline"**\n- **"Próximos pasos"** o **"acciones"**\n- **"Contactos"** o **"seguimiento"**\n- **"Resumen"** o **"dashboard"**';
+        const welcomeAI = '¡Hola! Estoy conectado a **OpenAI GPT-4o-mini** y consulto datos reales de la BD.\n\nPuedes hacerme cualquier pregunta sobre el CRM en lenguaje natural.';
+        addAiMessage('bot', aiUseOpenAI ? welcomeAI : welcomeBasic);
+      });
     }
     document.getElementById('aiChatInput').focus();
   } else {
@@ -1009,12 +1056,16 @@ function formatAiText(text) {
   return html;
 }
 
-function addAiMessage(type, text) {
+function addAiMessage(type, text, mode) {
   const container = document.getElementById('aiChatMessages');
   const msg = document.createElement('div');
   msg.className = `ai-msg ${type}`;
   if (type === 'bot') {
-    msg.innerHTML = formatAiText(text);
+    let html = formatAiText(text);
+    if (mode === 'openai') {
+      html = '<span class="ai-badge-openai">✦ IA</span>' + html;
+    }
+    msg.innerHTML = html;
   } else {
     msg.textContent = text;
   }
@@ -1041,10 +1092,10 @@ async function sendAiMessage() {
   try {
     const data = await api('/api/ai/chat', {
       method: 'POST',
-      body: JSON.stringify({ message: text }),
+      body: JSON.stringify({ message: text, useAI: aiUseOpenAI }),
     });
     typing.remove();
-    addAiMessage('bot', data.response);
+    addAiMessage('bot', data.response, data.mode);
   } catch (e) {
     typing.remove();
     addAiMessage('bot', 'Error al procesar la consulta: ' + e.message);

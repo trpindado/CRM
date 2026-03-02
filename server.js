@@ -1,3 +1,11 @@
+// Load .env if present (no extra dependency)
+if (require('fs').existsSync('./.env')) {
+  require('fs').readFileSync('./.env', 'utf8').split('\n').forEach(line => {
+    const [k, ...v] = line.split('=');
+    if (k?.trim()) process.env[k.trim()] = v.join('=').trim();
+  });
+}
+
 const express = require('express');
 const session = require('express-session');
 const cors = require('cors');
@@ -5,6 +13,12 @@ const multer = require('multer');
 const XLSX = require('xlsx');
 const path = require('path');
 const db = require('./database');
+
+const SYSTEM_PROMPT = `Eres un asistente especializado del CRM GNL (Gas Natural Licuado).
+Respondes en español, de forma concisa y estructurada.
+Usas los datos de la base de datos que se te proporcionan como contexto.
+No inventes datos — si no tienes información, dilo claramente.
+Formato: usa **negrita** para destacar cifras y nombres clave.`;
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -273,14 +287,38 @@ app.get('/api/entidades-list', requireAuth, (req, res) => {
 });
 
 // ============ AI CHAT ============
-app.post('/api/ai/chat', requireAuth, (req, res) => {
-  try {
-    const { message } = req.body;
-    if (!message || message.trim() === '') {
-      return res.status(400).json({ error: 'Mensaje vacío' });
+app.get('/api/ai/status', requireAuth, (req, res) => {
+  res.json({ openaiAvailable: !!process.env.OPENAI_API_KEY });
+});
+
+app.post('/api/ai/chat', requireAuth, async (req, res) => {
+  const { message, useAI = false } = req.body;
+  if (!message?.trim()) return res.status(400).json({ error: 'Mensaje vacío' });
+
+  if (useAI && process.env.OPENAI_API_KEY) {
+    try {
+      const { OpenAI } = require('openai');
+      const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+      const context = db.getCrmContext(message);
+      const completion = await openai.chat.completions.create({
+        model: 'gpt-4o-mini',
+        messages: [
+          { role: 'system', content: SYSTEM_PROMPT + '\n\n' + context },
+          { role: 'user', content: message }
+        ],
+        max_tokens: 800,
+        temperature: 0.3
+      });
+      return res.json({ response: completion.choices[0].message.content, mode: 'openai' });
+    } catch (e) {
+      const fallback = db.processAiQuery(message);
+      return res.json({ response: '⚠️ OpenAI no disponible, usando respuesta básica.\n\n' + fallback, mode: 'fallback' });
     }
+  }
+
+  try {
     const response = db.processAiQuery(message);
-    res.json({ response });
+    res.json({ response, mode: 'basic' });
   } catch (e) {
     res.status(500).json({ error: 'Error procesando consulta: ' + e.message });
   }

@@ -7,3 +7,5 @@ server.log
 *.db-shm
 *.db-wal
 *.db.backup
+# Variables de entorno (nunca a GitHub)
+.env

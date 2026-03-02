@@ -955,7 +955,16 @@ node server.js
           <div>
             <div class="ai-chat-name">Asistente IA</div>
             <div class="ai-chat-status"><span class="ai-status-dot"></span> En l&iacute;nea</div>
+            <div class="ai-mode-label" id="aiModeLabel">Modo: B&aacute;sico</div>
           </div>
+        </div>
+        <div class="ai-toggle-wrapper" id="aiToggleWrapper" title="Configura OPENAI_API_KEY en .env">
+          <span class="ai-toggle-label-left">B&aacute;sico</span>
+          <label class="ai-toggle-switch">
+            <input type="checkbox" id="aiToggle" onchange="onAiToggleChange()" disabled>
+            <span class="ai-toggle-slider"></span>
+          </label>
+          <span class="ai-toggle-label-right">IA</span>
         </div>
         <button class="ai-chat-close" onclick="toggleAiChat()">&times;</button>
       </div>

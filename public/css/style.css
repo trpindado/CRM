@@ -965,6 +965,99 @@ select.form-control {
   background: var(--primary-dark);
 }
 
+/* AI mode label */
+.ai-mode-label {
+  font-size: 11px;
+  opacity: 0.75;
+  margin-top: 2px;
+}
+
+.ai-mode-label.ai-mode-openai {
+  opacity: 1;
+  color: #FFD700;
+  font-weight: 600;
+}
+
+/* AI toggle switch */
+.ai-toggle-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.ai-toggle-label-left,
+.ai-toggle-label-right {
+  font-size: 11px;
+  color: rgba(255,255,255,0.85);
+  white-space: nowrap;
+}
+
+.ai-toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 40px;
+  height: 22px;
+  flex-shrink: 0;
+}
+
+.ai-toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.ai-toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  inset: 0;
+  background: rgba(255,255,255,0.25);
+  border-radius: 22px;
+  transition: background 0.2s;
+}
+
+.ai-toggle-slider::before {
+  content: '';
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  left: 3px;
+  top: 3px;
+  background: white;
+  border-radius: 50%;
+  transition: transform 0.2s;
+}
+
+.ai-toggle-switch input:checked + .ai-toggle-slider {
+  background: #FFD700;
+}
+
+.ai-toggle-switch input:checked + .ai-toggle-slider::before {
+  transform: translateX(18px);
+}
+
+.ai-toggle-switch input:disabled + .ai-toggle-slider {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.ai-toggle-wrapper:has(input:disabled) {
+  cursor: not-allowed;
+}
+
+/* OpenAI badge on messages */
+.ai-badge-openai {
+  display: inline-block;
+  background: #FFD700;
+  color: #333;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 8px;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
 /* Entity edit mode */
 .entity-edit-mode {
   background: #FFF8E1;
