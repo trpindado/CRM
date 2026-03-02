@@ -1,9 +1,13 @@
 // Load .env if present (no extra dependency)
-if (require('fs').existsSync('./.env')) {
-  require('fs').readFileSync('./.env', 'utf8').split('\n').forEach(line => {
-    const [k, ...v] = line.split('=');
+const _envPath = require('path').join(__dirname, '.env');
+if (require('fs').existsSync(_envPath)) {
+  require('fs').readFileSync(_envPath, 'utf8').split('\n').forEach(line => {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith('#')) return;
+    const [k, ...v] = trimmed.split('=');
     if (k?.trim()) process.env[k.trim()] = v.join('=').trim();
   });
+  console.log('OpenAI disponible:', !!process.env.OPENAI_API_KEY);
 }
 
 const express = require('express');
@@ -287,7 +291,7 @@ app.get('/api/entidades-list', requireAuth, (req, res) => {
 });
 
 // ============ AI CHAT ============
-app.get('/api/ai/status', requireAuth, (req, res) => {
+app.get('/api/ai/status', (req, res) => {
   res.json({ openaiAvailable: !!process.env.OPENAI_API_KEY });
 });
 
