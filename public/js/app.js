@@ -592,7 +592,8 @@ const tableSchemas = {
     pk: 'id',
     columns: ['CodigoContacto', 'CodigoEntidad', 'Nombre', 'Cargo', 'Email', 'Telefono1', 'Telefono2', 'Via', 'FechaUltimoContacto', 'DemorarContactoAfecha', 'ProbabilidadExito', 'Linkedin', 'Comentarios'],
     labels: { CodigoContacto: 'Codigo', CodigoEntidad: 'Entidad', Nombre: 'Nombre', Cargo: 'Cargo', Email: 'Email', Telefono1: 'Telefono 1', Telefono2: 'Telefono 2', Via: 'Via', FechaUltimoContacto: 'Ultimo Contacto', DemorarContactoAfecha: 'Demorar a', ProbabilidadExito: 'Probabilidad', Linkedin: 'LinkedIn', Comentarios: 'Comentarios' },
-    displayCols: ['CodigoContacto', 'CodigoEntidad', 'Nombre', 'Cargo', 'Email', 'ProbabilidadExito'],
+    displayCols: ['CodigoContacto', 'CodigoEntidad', 'Nombre', 'Cargo', 'Email', 'ProbabilidadExito', 'Linkedin'],
+    urlFields: ['Linkedin'],
     codeField: 'CodigoContacto',
     requiresEntity: true,
   },
@@ -611,6 +612,7 @@ const tableSchemas = {
     columns: ['CodigoDocumento', 'CodigoEntidad', 'KYC_S_N', 'KYC_link', 'NDA_S_N', 'FechaExpiracionNDA', 'NDALink', 'MSPASN', 'LinkMSPA', 'Comentarios'],
     labels: { CodigoDocumento: 'Codigo', CodigoEntidad: 'Entidad', KYC_S_N: 'KYC', KYC_link: 'Link KYC', NDA_S_N: 'NDA', FechaExpiracionNDA: 'Exp. NDA', NDALink: 'Link NDA', MSPASN: 'MSPA', LinkMSPA: 'Link MSPA', Comentarios: 'Comentarios' },
     displayCols: ['CodigoDocumento', 'CodigoEntidad', 'KYC_S_N', 'NDA_S_N', 'MSPASN', 'Comentarios'],
+    linkPairs: { 'KYC_S_N': 'KYC_link', 'NDA_S_N': 'NDALink', 'MSPASN': 'LinkMSPA' },
     codeField: 'CodigoDocumento',
     requiresEntity: true,
   },
@@ -619,7 +621,8 @@ const tableSchemas = {
     pk: 'CodigoPaisNormalizado',
     columns: ['CodigoPaisNormalizado', 'Nombre', 'Region', 'ReferenciaIndice', 'LinkFichaPais', 'PersonaReferenciaOportun', 'Comentarios'],
     labels: { CodigoPaisNormalizado: 'Codigo', Nombre: 'Nombre', Region: 'Region', ReferenciaIndice: 'Ref. Indice', LinkFichaPais: 'Link Ficha', PersonaReferenciaOportun: 'Persona Ref.', Comentarios: 'Comentarios' },
-    displayCols: ['CodigoPaisNormalizado', 'Nombre', 'Region', 'ReferenciaIndice', 'PersonaReferenciaOportun'],
+    displayCols: ['CodigoPaisNormalizado', 'Nombre', 'Region', 'ReferenciaIndice', 'LinkFichaPais', 'PersonaReferenciaOportun'],
+    urlFields: ['LinkFichaPais'],
   },
   usuarios: {
     endpoint: 'usuarios',
@@ -631,6 +634,30 @@ const tableSchemas = {
 };
 
 let pendingFilter = null;
+
+function renderCellValue(col, value, row, schema) {
+  const v = value == null ? '' : String(value);
+
+  // URL-only fields → render as icon link
+  if (schema.urlFields && schema.urlFields.includes(col)) {
+    if (!v) return '-';
+    const href = v.startsWith('http') ? v : 'https://' + v;
+    if (col === 'Linkedin') {
+      return `<a href="${esc(href)}" target="_blank" rel="noopener" title="${esc(v)}" style="color:#0077b5;font-size:17px;"><i class="fab fa-linkedin"></i></a>`;
+    }
+    return `<a href="${esc(href)}" target="_blank" rel="noopener" title="${esc(v)}" style="color:var(--primary);font-size:15px;"><i class="fas fa-external-link-alt"></i></a>`;
+  }
+
+  // linkPairs → append icon to the cell value if the paired link exists
+  if (schema.linkPairs && schema.linkPairs[col]) {
+    const linkVal = row[schema.linkPairs[col]];
+    const cellText = v || '-';
+    if (!linkVal) return esc(cellText);
+    return `${esc(cellText)} <a href="${esc(linkVal)}" target="_blank" rel="noopener" title="Abrir documento" style="color:var(--primary);margin-left:4px;"><i class="fas fa-external-link-alt"></i></a>`;
+  }
+
+  return esc(v);
+}
 
 function navigateWithFilter(view, field, value) {
   pendingFilter = { field, value };
@@ -685,7 +712,7 @@ function renderAdminTableRows(tableName, data) {
       <tbody>
         ${data.map(row => `
           <tr>
-            ${schema.displayCols.map(c => `<td>${esc(row[c])}</td>`).join('')}
+            ${schema.displayCols.map(c => `<td>${renderCellValue(c, row[c], row, schema)}</td>`).join('')}
             <td class="actions">
               <button class="btn btn-sm btn-primary" onclick="openEditModal('${tableName}', '${esc(row[schema.pk])}')"><i class="fas fa-edit"></i></button>
               <button class="btn btn-sm btn-danger" onclick="deleteRecord('${tableName}', '${esc(row[schema.pk])}')"><i class="fas fa-trash"></i></button>
