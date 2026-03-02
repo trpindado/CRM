@@ -2,5 +2,8 @@ node_modules/
 uploads/
 server.log
 *.log
-crm.db-shm
-crm.db-wal
+# Base de datos local (no subir a GitHub)
+*.db
+*.db-shm
+*.db-wal
+*.db.backup
