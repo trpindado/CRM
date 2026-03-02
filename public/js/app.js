@@ -2,6 +2,62 @@
 let currentUser = null;
 let currentView = 'dashboard';
 let previousView = 'search';
+const adminTableData = {};
+let dashboardMap = null;
+
+// ============ COUNTRY COORDINATES (ISO 3166-1 alpha-3) ============
+const COUNTRY_COORDS = {
+  ANG: [-11.20, 17.87],   // Angola
+  ARE: [24.00,  54.00],   // UAE
+  ARG: [-38.42, -63.62],  // Argentina
+  AUS: [-25.27, 133.78],  // Australia
+  BEL: [50.50,   4.47],   // Belgium
+  BGD: [23.68,  90.36],   // Bangladesh
+  BRA: [-14.24, -51.93],  // Brazil
+  CHL: [-35.68, -71.54],  // Chile
+  CHN: [35.86,  104.20],  // China
+  COL: [4.57,   -74.30],  // Colombia
+  DEU: [51.17,   10.45],  // Germany
+  DNK: [56.26,    9.50],  // Denmark
+  EGY: [26.82,   30.80],  // Egypt
+  ESP: [40.46,   -3.75],  // Spain
+  FIN: [61.92,   25.75],  // Finland
+  FRA: [46.60,    1.89],  // France
+  GBR: [52.36,   -1.17],  // United Kingdom
+  GRC: [39.07,   21.82],  // Greece
+  IDN: [-0.79,  113.92],  // Indonesia
+  IND: [20.59,   78.96],  // India
+  ITA: [41.87,   12.57],  // Italy
+  JPN: [36.20,  138.25],  // Japan
+  KOR: [36.00,  127.77],  // South Korea
+  KWT: [29.31,   47.48],  // Kuwait
+  MEX: [23.63, -102.55],  // Mexico
+  MOZ: [-18.67,  35.53],  // Mozambique
+  MRT: [20.96,  -10.94],  // Mauritania
+  MYS: [4.21,   108.96],  // Malaysia
+  NGA: [9.08,     8.68],  // Nigeria
+  NLD: [52.13,    5.29],  // Netherlands
+  NOR: [60.47,    8.47],  // Norway
+  OMN: [21.47,   55.98],  // Oman
+  PAK: [30.38,   69.35],  // Pakistan
+  PER: [-9.19,  -75.02],  // Peru
+  PHL: [12.88,  121.77],  // Philippines
+  PNG: [-6.31,  143.96],  // Papua New Guinea
+  POL: [51.92,   19.15],  // Poland
+  PRT: [39.40,   -8.22],  // Portugal
+  QAT: [25.35,   51.18],  // Qatar
+  RUS: [61.52,  105.32],  // Russia
+  SGP: [1.35,   103.82],  // Singapore
+  SWE: [60.13,   18.64],  // Sweden
+  THA: [15.87,  100.99],  // Thailand
+  TTO: [10.69,  -61.22],  // Trinidad and Tobago
+  TUR: [38.96,   35.24],  // Turkey
+  TWN: [23.70,  120.96],  // Taiwan
+  TZA: [-6.37,   34.89],  // Tanzania
+  USA: [37.09,  -95.71],  // United States
+  VNM: [14.06,  108.28],  // Vietnam
+  // LNG (LNG-Territory) omitido: territorio virtual sin coordenadas geográficas
+};
 
 // ============ API HELPERS ============
 async function api(url, options = {}) {
@@ -83,7 +139,7 @@ document.querySelectorAll('.nav-item').forEach(btn => {
   });
 });
 
-function switchView(view) {
+function switchView(view, skipAutoLoad) {
   currentView = view;
   document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
@@ -96,7 +152,9 @@ function switchView(view) {
 
   // Load data
   if (view === 'dashboard') loadDashboard();
-  else if (view === 'search') { loadSearch(''); document.getElementById('searchInput').value = ''; }
+  else if (view === 'search') {
+    if (!skipAutoLoad) { loadSearch(''); document.getElementById('searchInput').value = ''; }
+  }
   else if (view.startsWith('admin-')) loadAdminTable(view.replace('admin-', ''));
 }
 
@@ -152,9 +210,75 @@ async function loadDashboard() {
         <div class="panel-body">${renderBarChart(stats.probabilidadContactos, 'ProbabilidadExito', 'total', colors, 'admin-contactos', 'ProbabilidadExito')}</div>
       </div>
     `;
+
+    initDashboardMap(stats.entidadesPorPais);
   } catch (e) {
     toast(e.message, 'error');
   }
+}
+
+function initDashboardMap(data) {
+  if (!data || data.length === 0) return;
+
+  // Remove old map instance if re-loading
+  if (dashboardMap) {
+    dashboardMap.remove();
+    dashboardMap = null;
+  }
+
+  dashboardMap = L.map('dashboardMap', { scrollWheelZoom: true }).setView([20, 0], 2);
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    maxZoom: 18,
+  }).addTo(dashboardMap);
+
+  const maxCount = Math.max(...data.map(d => d.numEntidades));
+  const bounds = [];
+
+  data.forEach(d => {
+    const coords = COUNTRY_COORDS[d.CodigoPaisNormalizado];
+    if (!coords) return;
+
+    const radius = Math.max(6, Math.min(20, (d.numEntidades / maxCount) * 20));
+    const marker = L.circleMarker(coords, {
+      radius: radius,
+      fillColor: '#0078D4',
+      color: '#005A9E',
+      weight: 2,
+      opacity: 0.9,
+      fillOpacity: 0.6,
+    }).addTo(dashboardMap);
+
+    marker.bindTooltip(`${d.Nombre}: ${d.numEntidades}`, { direction: 'top', offset: [0, -radius] });
+
+    const popupContent = `
+      <div class="map-popup">
+        <div class="map-popup-title">${esc(d.Nombre)}</div>
+        <div class="map-popup-region">${esc(d.Region || 'Sin regi\u00f3n')}</div>
+        <div class="map-popup-count">${d.numEntidades} entidad${d.numEntidades !== 1 ? 'es' : ''}</div>
+        <button class="map-popup-link" onclick="searchByCountry('${esc(d.Nombre)}')">
+          <i class="fas fa-search"></i> Ver Entidades
+        </button>
+      </div>`;
+    marker.bindPopup(popupContent);
+
+    bounds.push(coords);
+  });
+
+  if (bounds.length > 0) {
+    dashboardMap.fitBounds(bounds, { padding: [30, 30], maxZoom: 5 });
+  }
+
+  // Fix Leaflet rendering when container was hidden
+  setTimeout(() => { dashboardMap.invalidateSize(); }, 200);
+}
+
+function searchByCountry(countryName) {
+  switchView('search', true);
+  const input = document.getElementById('searchInput');
+  input.value = countryName;
+  loadSearch(countryName);
 }
 
 function renderBarChart(data, labelKey, valueKey, colors, targetView, filterField) {
@@ -526,6 +650,12 @@ async function loadAdminTable(tableName) {
       pendingFilter = null;
     }
     const data = await api(url);
+    adminTableData[tableName] = data;
+
+    // Clear filter input
+    const filterInput = document.getElementById(`filter-${tableName}`);
+    if (filterInput) filterInput.value = '';
+
     const container = document.getElementById(`table${capitalize(tableName)}`);
     if (!container) return;
 
@@ -536,31 +666,87 @@ async function loadAdminTable(tableName) {
         </div>`
       : '';
 
-    container.innerHTML = filterBanner + `
-      <table class="data-table">
-        <thead>
-          <tr>
-            ${schema.displayCols.map(c => `<th>${schema.labels[c] || c}</th>`).join('')}
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${data.map(row => `
-            <tr>
-              ${schema.displayCols.map(c => `<td>${esc(row[c])}</td>`).join('')}
-              <td class="actions">
-                <button class="btn btn-sm btn-primary" onclick="openEditModal('${tableName}', '${esc(row[schema.pk])}')"><i class="fas fa-edit"></i></button>
-                <button class="btn btn-sm btn-danger" onclick="deleteRecord('${tableName}', '${esc(row[schema.pk])}')"><i class="fas fa-trash"></i></button>
-              </td>
-            </tr>
-          `).join('')}
-          ${data.length === 0 ? `<tr><td colspan="${schema.displayCols.length + 1}" style="text-align:center;color:#888;padding:30px;">No hay registros</td></tr>` : ''}
-        </tbody>
-      </table>
-    `;
+    container.innerHTML = filterBanner + renderAdminTableRows(tableName, data);
   } catch (e) {
     toast(e.message, 'error');
   }
+}
+
+function renderAdminTableRows(tableName, data) {
+  const schema = tableSchemas[tableName];
+  return `
+    <table class="data-table">
+      <thead>
+        <tr>
+          ${schema.displayCols.map(c => `<th>${schema.labels[c] || c}</th>`).join('')}
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${data.map(row => `
+          <tr>
+            ${schema.displayCols.map(c => `<td>${esc(row[c])}</td>`).join('')}
+            <td class="actions">
+              <button class="btn btn-sm btn-primary" onclick="openEditModal('${tableName}', '${esc(row[schema.pk])}')"><i class="fas fa-edit"></i></button>
+              <button class="btn btn-sm btn-danger" onclick="deleteRecord('${tableName}', '${esc(row[schema.pk])}')"><i class="fas fa-trash"></i></button>
+            </td>
+          </tr>
+        `).join('')}
+        ${data.length === 0 ? `<tr><td colspan="${schema.displayCols.length + 1}" style="text-align:center;color:#888;padding:30px;">No hay registros</td></tr>` : ''}
+      </tbody>
+    </table>
+  `;
+}
+
+function filterAdminTable(tableName) {
+  const schema = tableSchemas[tableName];
+  if (!schema) return;
+  const allData = adminTableData[tableName];
+  if (!allData) return;
+
+  const filterInput = document.getElementById(`filter-${tableName}`);
+  const query = (filterInput ? filterInput.value : '').toLowerCase().trim();
+
+  const filtered = query === '' ? allData : allData.filter(row =>
+    schema.displayCols.some(col => String(row[col] || '').toLowerCase().includes(query))
+  );
+
+  const container = document.getElementById(`table${capitalize(tableName)}`);
+  if (!container) return;
+  container.innerHTML = renderAdminTableRows(tableName, filtered);
+}
+
+function exportCSV(tableName) {
+  const schema = tableSchemas[tableName];
+  if (!schema) return;
+  const allData = adminTableData[tableName];
+  if (!allData) return;
+
+  const filterInput = document.getElementById(`filter-${tableName}`);
+  const query = (filterInput ? filterInput.value : '').toLowerCase().trim();
+
+  const data = query === '' ? allData : allData.filter(row =>
+    schema.displayCols.some(col => String(row[col] || '').toLowerCase().includes(query))
+  );
+
+  const headers = schema.displayCols.map(c => schema.labels[c] || c);
+  const csvRows = [headers.join(',')];
+  data.forEach(row => {
+    const values = schema.displayCols.map(c => {
+      const val = String(row[c] == null ? '' : row[c]).replace(/"/g, '""');
+      return `"${val}"`;
+    });
+    csvRows.push(values.join(','));
+  });
+
+  const csvContent = '\uFEFF' + csvRows.join('\n');
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${tableName}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 // ============ CRUD MODALS ============
@@ -906,6 +1092,48 @@ async function openMyProfileModal() {
     toast(e.message, 'error');
   }
 }
+
+// ============ PRESENTATION ============
+let presentationActive = false;
+let currentSlide = 1;
+const totalSlides = 8;
+
+function initPresentation() {
+  presentationActive = true;
+  currentSlide = 1;
+  const container = document.getElementById('presentationContainer');
+  container.classList.add('active');
+  updateSlide();
+  document.body.style.overflow = 'hidden';
+}
+
+function changeSlide(dir) {
+  currentSlide += dir;
+  if (currentSlide < 1) currentSlide = 1;
+  if (currentSlide > totalSlides) currentSlide = totalSlides;
+  updateSlide();
+}
+
+function updateSlide() {
+  const slides = document.querySelectorAll('#presentationContainer .slide');
+  slides.forEach(s => s.classList.remove('active'));
+  const target = document.querySelector(`#presentationContainer .slide[data-slide="${currentSlide}"]`);
+  if (target) target.classList.add('active');
+  document.getElementById('presCounter').textContent = `${currentSlide} / ${totalSlides}`;
+}
+
+function exitPresentation() {
+  presentationActive = false;
+  document.getElementById('presentationContainer').classList.remove('active');
+  document.body.style.overflow = '';
+}
+
+document.addEventListener('keydown', (e) => {
+  if (!presentationActive) return;
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { changeSlide(1); e.preventDefault(); }
+  else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { changeSlide(-1); e.preventDefault(); }
+  else if (e.key === 'Escape') { exitPresentation(); e.preventDefault(); }
+});
 
 // ============ INIT ============
 checkSession();

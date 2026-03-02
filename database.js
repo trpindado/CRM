@@ -194,6 +194,12 @@ function getDashboardStats() {
     oportunidadesPorTiming: db.prepare('SELECT Timing, COUNT(*) as total FROM Oportunidades GROUP BY Timing ORDER BY total DESC').all(),
     probabilidadContactos: db.prepare('SELECT ProbabilidadExito, COUNT(*) as total FROM Contactos GROUP BY ProbabilidadExito ORDER BY total DESC').all(),
     entidadesPorTipo: db.prepare('SELECT Tipo, COUNT(*) as total FROM Entidades GROUP BY Tipo ORDER BY total DESC').all(),
+    entidadesPorPais: db.prepare(`
+      SELECT p.CodigoPaisNormalizado, p.Nombre, p.Region,
+        COUNT(e.CodigoEntidad) as numEntidades
+      FROM Pais p INNER JOIN Entidades e ON p.CodigoPaisNormalizado = e.CodigoPaisNormalizado
+      GROUP BY p.CodigoPaisNormalizado ORDER BY numEntidades DESC
+    `).all(),
   };
 }
 

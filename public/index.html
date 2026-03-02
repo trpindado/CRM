@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>GNL CRM - Gestor Comercial</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin="" />
   <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
@@ -72,6 +75,21 @@
         <button class="nav-item" data-view="admin-import">
           <i class="fas fa-file-upload"></i> Importar Datos
         </button>
+
+        <div class="sidebar-section">Documentaci&oacute;n</div>
+        <button class="nav-item" data-view="doc-guia-it">
+          <i class="fas fa-server"></i> Gu&iacute;a IT / Implementaci&oacute;n
+        </button>
+        <button class="nav-item" data-view="doc-guia-usuario">
+          <i class="fas fa-book"></i> Gu&iacute;a de Usuario
+        </button>
+        <button class="nav-item" data-view="doc-bbdd">
+          <i class="fas fa-database"></i> Dise&ntilde;o de BBDD
+        </button>
+        <button class="nav-item" data-view="doc-presentacion">
+          <i class="fas fa-tv"></i> Presentaci&oacute;n
+        </button>
+
         <button class="nav-item" data-view="admin-usuarios" id="navUsuarios" style="display:none">
           <i class="fas fa-users-cog"></i> Usuarios
         </button>
@@ -103,6 +121,12 @@
           <h1>Dashboard</h1>
         </div>
         <div class="stats-grid" id="statsGrid"></div>
+        <div class="panel" id="dashboardMapPanel">
+          <div class="panel-header"><h3><i class="fas fa-globe-americas"></i> Mapa de Entidades por Pa&iacute;s</h3></div>
+          <div class="panel-body" style="padding:0;">
+            <div id="dashboardMap" style="height:500px;"></div>
+          </div>
+        </div>
         <div class="charts-grid" id="chartsGrid"></div>
       </div>
 
@@ -154,6 +178,15 @@
           <h1><i class="fas fa-building"></i> Gesti&oacute;n de Entidades</h1>
           <button class="btn btn-accent" onclick="openCreateModal('entidades')"><i class="fas fa-plus"></i> Nueva Entidad</button>
         </div>
+        <div class="table-filter-bar">
+          <div class="search-box">
+            <i class="fas fa-search"></i>
+            <input type="text" id="filter-entidades" placeholder="Filtrar..." oninput="filterAdminTable('entidades')">
+          </div>
+          <button class="btn btn-sm btn-outline" onclick="exportCSV('entidades')">
+            <i class="fas fa-file-csv"></i> Exportar CSV
+          </button>
+        </div>
         <div class="panel">
           <div class="panel-body no-padding">
             <div class="table-wrapper" id="tableEntidades"></div>
@@ -165,6 +198,15 @@
         <div class="top-bar">
           <h1><i class="fas fa-address-book"></i> Gesti&oacute;n de Contactos</h1>
           <button class="btn btn-accent" onclick="openCreateModal('contactos')"><i class="fas fa-plus"></i> Nuevo Contacto</button>
+        </div>
+        <div class="table-filter-bar">
+          <div class="search-box">
+            <i class="fas fa-search"></i>
+            <input type="text" id="filter-contactos" placeholder="Filtrar..." oninput="filterAdminTable('contactos')">
+          </div>
+          <button class="btn btn-sm btn-outline" onclick="exportCSV('contactos')">
+            <i class="fas fa-file-csv"></i> Exportar CSV
+          </button>
         </div>
         <div class="panel">
           <div class="panel-body no-padding">
@@ -178,6 +220,15 @@
           <h1><i class="fas fa-handshake"></i> Gesti&oacute;n de Oportunidades</h1>
           <button class="btn btn-accent" onclick="openCreateModal('oportunidades')"><i class="fas fa-plus"></i> Nueva Oportunidad</button>
         </div>
+        <div class="table-filter-bar">
+          <div class="search-box">
+            <i class="fas fa-search"></i>
+            <input type="text" id="filter-oportunidades" placeholder="Filtrar..." oninput="filterAdminTable('oportunidades')">
+          </div>
+          <button class="btn btn-sm btn-outline" onclick="exportCSV('oportunidades')">
+            <i class="fas fa-file-csv"></i> Exportar CSV
+          </button>
+        </div>
         <div class="panel">
           <div class="panel-body no-padding">
             <div class="table-wrapper" id="tableOportunidades"></div>
@@ -190,6 +241,15 @@
           <h1><i class="fas fa-file-alt"></i> Gesti&oacute;n de Documentos</h1>
           <button class="btn btn-accent" onclick="openCreateModal('documentos')"><i class="fas fa-plus"></i> Nuevo Documento</button>
         </div>
+        <div class="table-filter-bar">
+          <div class="search-box">
+            <i class="fas fa-search"></i>
+            <input type="text" id="filter-documentos" placeholder="Filtrar..." oninput="filterAdminTable('documentos')">
+          </div>
+          <button class="btn btn-sm btn-outline" onclick="exportCSV('documentos')">
+            <i class="fas fa-file-csv"></i> Exportar CSV
+          </button>
+        </div>
         <div class="panel">
           <div class="panel-body no-padding">
             <div class="table-wrapper" id="tableDocumentos"></div>
@@ -201,6 +261,15 @@
         <div class="top-bar">
           <h1><i class="fas fa-globe"></i> Gesti&oacute;n de Pa&iacute;ses</h1>
           <button class="btn btn-accent" onclick="openCreateModal('paises')"><i class="fas fa-plus"></i> Nuevo Pa&iacute;s</button>
+        </div>
+        <div class="table-filter-bar">
+          <div class="search-box">
+            <i class="fas fa-search"></i>
+            <input type="text" id="filter-paises" placeholder="Filtrar..." oninput="filterAdminTable('paises')">
+          </div>
+          <button class="btn btn-sm btn-outline" onclick="exportCSV('paises')">
+            <i class="fas fa-file-csv"></i> Exportar CSV
+          </button>
         </div>
         <div class="panel">
           <div class="panel-body no-padding">
@@ -223,6 +292,637 @@
             </div>
             <input type="file" id="importFile" accept=".xlsx,.xls" style="display:none" onchange="importExcel(this)">
             <div id="importResults" class="hidden"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ DOC: GUIA IT ============ -->
+      <div id="view-doc-guia-it" class="view hidden">
+        <div class="top-bar">
+          <h1><i class="fas fa-server"></i> Gu&iacute;a IT / Implementaci&oacute;n</h1>
+        </div>
+        <div class="doc-content">
+
+          <div class="doc-section">
+            <h2>Resumen Ejecutivo</h2>
+            <p><strong>GNL CRM</strong> es una aplicaci&oacute;n web de gesti&oacute;n comercial para Gas Natural Licuado, construida como <strong>Single Page Application (SPA)</strong> con las siguientes tecnolog&iacute;as:</p>
+            <ul>
+              <li><strong>Backend:</strong> Node.js + Express 5.x (API REST)</li>
+              <li><strong>Base de datos:</strong> SQLite 3 con better-sqlite3 v12 (modo WAL)</li>
+              <li><strong>Frontend:</strong> HTML5 + CSS3 + JavaScript vanilla (sin frameworks)</li>
+              <li><strong>Mapas:</strong> Leaflet.js 1.9 con teselas OpenStreetMap (mapa mundial interactivo en dashboard)</li>
+              <li><strong>Autenticaci&oacute;n:</strong> Sesiones HTTP con express-session (almacenadas en memoria)</li>
+            </ul>
+          </div>
+
+          <div class="doc-section">
+            <h2>Requisitos del Servidor</h2>
+            <table class="data-table">
+              <thead><tr><th>Requisito</th><th>M&iacute;nimo</th><th>Recomendado</th></tr></thead>
+              <tbody>
+                <tr><td>Node.js</td><td>18.x LTS</td><td>20.x LTS</td></tr>
+                <tr><td>RAM</td><td>512 MB</td><td>1 GB</td></tr>
+                <tr><td>Disco</td><td>100 MB</td><td>500 MB</td></tr>
+                <tr><td>Sistema Operativo</td><td>Windows / Linux / macOS</td><td>Ubuntu 22.04 LTS</td></tr>
+                <tr><td>Puerto</td><td>3000 (configurable)</td><td>443 con HTTPS</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="doc-section">
+            <h2>Pasos de Despliegue</h2>
+            <div class="doc-tip">
+              <i class="fas fa-lightbulb"></i>
+              <strong>R&aacute;pido:</strong> En 3 comandos tienes la aplicaci&oacute;n funcionando.
+            </div>
+            <pre class="doc-code">
+# 1. Clonar el repositorio
+git clone &lt;repositorio&gt; gnl-crm
+cd gnl-crm
+
+# 2. Instalar dependencias
+npm install
+
+# 3. Arrancar el servidor
+node server.js
+# &rarr; Servidor escuchando en http://localhost:3000</pre>
+            <p>El servidor crea autom&aacute;ticamente la base de datos SQLite y el usuario admin por defecto en el primer arranque.</p>
+          </div>
+
+          <div class="doc-section">
+            <h2>Integraci&oacute;n en Ecosistema Microsoft</h2>
+
+            <h3><i class="fas fa-cloud"></i> Azure App Service</h3>
+            <p>Despliegue recomendado en la nube de Microsoft. Plan <strong>B1</strong> o superior. Compatible con despliegue continuo desde GitHub/Azure DevOps.</p>
+
+            <h3><i class="fas fa-database"></i> Azure SQL</h3>
+            <p>Migraci&oacute;n opcional de SQLite a <strong>SQL Server / Azure SQL</strong> para entornos de producci&oacute;n con alta concurrencia. El esquema es compatible con m&iacute;nimas adaptaciones.</p>
+
+            <h3><i class="fas fa-chart-bar"></i> Power BI</h3>
+            <p>Conexi&oacute;n directa a la base de datos (SQLite v&iacute;a ODBC o Azure SQL nativo) para crear <strong>dashboards avanzados</strong> con KPIs comerciales, mapas geogr&aacute;ficos y an&aacute;lisis de pipeline.</p>
+
+            <h3><i class="fas fa-mobile-alt"></i> Power Apps</h3>
+            <p>Posibilidad de consumir la <strong>API REST</strong> del CRM desde Power Apps para crear interfaces m&oacute;viles personalizadas para comerciales en campo.</p>
+
+            <h3><i class="fas fa-cogs"></i> Power Automate</h3>
+            <p>Automatizaci&oacute;n de flujos de trabajo:</p>
+            <ul>
+              <li>Alertas autom&aacute;ticas de expiraci&oacute;n de NDA</li>
+              <li>Notificaciones de nuevas oportunidades</li>
+              <li>Seguimiento peri&oacute;dico de contactos</li>
+              <li>Generaci&oacute;n autom&aacute;tica de informes semanales</li>
+            </ul>
+
+            <h3><i class="fas fa-envelope"></i> Microsoft 365</h3>
+            <p>Integraci&oacute;n con <strong>Outlook</strong> para env&iacute;o de correos desde el CRM y con <strong>Teams</strong> para notificaciones de canal sobre actividad comercial.</p>
+          </div>
+
+          <div class="doc-section">
+            <h2>Plan de Despliegue Recomendado</h2>
+            <table class="data-table">
+              <thead><tr><th>Fase</th><th>Acci&oacute;n</th><th>Descripci&oacute;n</th></tr></thead>
+              <tbody>
+                <tr><td><span class="badge badge-blue">Fase 1</span></td><td>Azure App Service</td><td>Desplegar la app Node.js con SQLite en App Service. Funcional inmediato.</td></tr>
+                <tr><td><span class="badge badge-orange">Fase 2</span></td><td>Azure SQL</td><td>Migrar de SQLite a Azure SQL para escalabilidad y backups autom&aacute;ticos.</td></tr>
+                <tr><td><span class="badge badge-green">Fase 3</span></td><td>Power BI + Power Automate</td><td>Conectar dashboards de BI y automatizar flujos de negocio.</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="doc-section">
+            <h2>Seguridad y Mantenimiento</h2>
+            <ul>
+              <li><strong>Contrase&ntilde;as:</strong> Almacenadas en texto plano &mdash; se recomienda a&ntilde;adir bcrypt antes del despliegue en producci&oacute;n</li>
+              <li><strong>Sesiones:</strong> Gestionadas en memoria del servidor (se pierden al reiniciar)</li>
+              <li><strong>CORS:</strong> Habilitado globalmente (<code>cors()</code>) &mdash; restringir a dominio propio en producci&oacute;n</li>
+              <li><strong>Backups:</strong> Copiar el fichero <code>crm.db</code> peri&oacute;dicamente (tambi&eacute;n se genera <code>crm.db.backup</code> autom&aacute;ticamente)</li>
+              <li><strong>Actualizaciones:</strong> <code>npm audit</code> peri&oacute;dico para vulnerabilidades</li>
+              <li><strong>Logs:</strong> Salida est&aacute;ndar (stdout), se recomienda PM2 o similar para producci&oacute;n</li>
+            </ul>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ============ DOC: GUIA USUARIO ============ -->
+      <div id="view-doc-guia-usuario" class="view hidden">
+        <div class="top-bar">
+          <h1><i class="fas fa-book"></i> Gu&iacute;a de Usuario</h1>
+        </div>
+        <div class="doc-content">
+
+          <div class="doc-section">
+            <h2>Acceso al Sistema</h2>
+            <p>Accede a la aplicaci&oacute;n desde tu navegador introduciendo la URL proporcionada por el equipo IT. Introduce tu <strong>usuario</strong> y <strong>contrase&ntilde;a</strong> en la pantalla de login.</p>
+            <table class="data-table">
+              <thead><tr><th>Rol</th><th>Permisos</th></tr></thead>
+              <tbody>
+                <tr><td><span class="badge badge-purple">Admin</span></td><td>Acceso completo: gesti&oacute;n de datos, importaci&oacute;n, usuarios y todas las funciones</td></tr>
+                <tr><td><span class="badge badge-blue">Comercial</span></td><td>Acceso a datos comerciales: entidades, contactos, oportunidades, documentos, b&uacute;squeda y dashboard</td></tr>
+              </tbody>
+            </table>
+            <div class="doc-tip">
+              <i class="fas fa-key"></i>
+              Puedes cambiar tu contrase&ntilde;a en cualquier momento desde el bot&oacute;n <strong>&quot;Mi Contrase&ntilde;a&quot;</strong> en la parte inferior del men&uacute; lateral.
+            </div>
+          </div>
+
+          <div class="doc-section">
+            <h2>Dashboard</h2>
+            <p>La pantalla principal muestra un resumen visual del CRM:</p>
+            <ul>
+              <li><strong>Tarjetas resumen:</strong> N&uacute;mero total de entidades, contactos, oportunidades, documentos y pa&iacute;ses. <em>Haz clic en cualquier tarjeta</em> para ir directamente a su gesti&oacute;n.</li>
+              <li><strong>Mapa mundial interactivo:</strong> Muestra la distribuci&oacute;n geogr&aacute;fica de las entidades. Cada c&iacute;rculo representa un pa&iacute;s; su tama&ntilde;o es proporcional al n&uacute;mero de entidades. <em>Pasa el rat&oacute;n</em> sobre un c&iacute;rculo para ver el detalle y <em>haz clic</em> para buscar las entidades de ese pa&iacute;s. Los c&oacute;digos de pa&iacute;s siguen el est&aacute;ndar <strong>ISO 3166-1 alpha-3</strong> (ESP, USA, IND&hellip;). El territorio virtual <em>LNG</em> no aparece en el mapa al no tener coordenadas geogr&aacute;ficas.</li>
+              <li><strong>Gr&aacute;ficos de barras:</strong> Entidades por regi&oacute;n, por tipo, oportunidades por timing y contactos por probabilidad. <em>Haz clic en una barra</em> para filtrar la tabla por ese valor.</li>
+            </ul>
+          </div>
+
+          <div class="doc-section">
+            <h2>Buscar Entidades</h2>
+            <p>El <strong>buscador global</strong> permite encontrar entidades por nombre, c&oacute;digo, regi&oacute;n, tipo o pa&iacute;s. Escribe en el campo de b&uacute;squeda y los resultados se filtran en tiempo real.</p>
+            <p>Desde los resultados, pulsa <strong>&quot;Ver&quot;</strong> para acceder al detalle completo de la entidad con sus contactos, oportunidades y documentos asociados.</p>
+          </div>
+
+          <div class="doc-section">
+            <h2>Gesti&oacute;n de Tablas (CRUD)</h2>
+            <p>Cada tabla de gesti&oacute;n (Entidades, Contactos, Oportunidades, Documentos, Pa&iacute;ses) ofrece las mismas operaciones:</p>
+            <table class="data-table">
+              <thead><tr><th>Acci&oacute;n</th><th>C&oacute;mo</th><th>Descripci&oacute;n</th></tr></thead>
+              <tbody>
+                <tr><td><span class="badge badge-green">Alta</span></td><td>Bot&oacute;n &quot;Nuevo...&quot;</td><td>Abre un formulario modal para crear un registro nuevo</td></tr>
+                <tr><td><span class="badge badge-blue">Edici&oacute;n</span></td><td>Bot&oacute;n <i class="fas fa-edit"></i></td><td>Abre el formulario con los datos actuales para modificar</td></tr>
+                <tr><td><span class="badge badge-red">Baja</span></td><td>Bot&oacute;n <i class="fas fa-trash"></i></td><td>Elimina el registro previa confirmaci&oacute;n</td></tr>
+                <tr><td><span class="badge badge-gray">Filtrado</span></td><td>Campo &quot;Filtrar...&quot;</td><td>Filtra los registros visibles en tiempo real</td></tr>
+                <tr><td><span class="badge badge-orange">Exportar CSV</span></td><td>Bot&oacute;n &quot;Exportar CSV&quot;</td><td>Descarga los datos visibles (filtrados o todos) en formato CSV</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="doc-section">
+            <h2>Detalle de Entidad</h2>
+            <p>Al hacer clic en <strong>&quot;Ver&quot;</strong> desde la b&uacute;squeda o la tabla de entidades, se muestra la <strong>ficha completa</strong> de la entidad con:</p>
+            <ul>
+              <li><strong>Datos generales:</strong> Regi&oacute;n, pa&iacute;s, c&oacute;digos fiscales, direcci&oacute;n, comentarios</li>
+              <li><strong>Bot&oacute;n Editar:</strong> Permite modificar los campos directamente en la ficha</li>
+              <li><strong>Pesta&ntilde;as:</strong> Contactos, Oportunidades y Documentos asociados</li>
+              <li>Desde cada pesta&ntilde;a puedes <strong>a&ntilde;adir, editar o eliminar</strong> registros vinculados a esa entidad</li>
+            </ul>
+          </div>
+
+          <div class="doc-section">
+            <h2>Importaci&oacute;n Excel</h2>
+            <p>Permite cargar datos masivamente desde un archivo <strong>Excel (.xlsx)</strong>. El archivo debe contener las siguientes hojas con sus columnas correspondientes:</p>
+            <table class="data-table">
+              <thead><tr><th>Hoja</th><th>Descripci&oacute;n</th></tr></thead>
+              <tbody>
+                <tr><td><strong>Pais</strong></td><td>Cat&aacute;logo de pa&iacute;ses con c&oacute;digo, nombre, regi&oacute;n</td></tr>
+                <tr><td><strong>Entidades</strong></td><td>Empresas/organizaciones con datos corporativos</td></tr>
+                <tr><td><strong>Contactos</strong></td><td>Personas de contacto vinculadas a entidades</td></tr>
+                <tr><td><strong>Oportunidades</strong></td><td>Oportunidades comerciales vinculadas a entidades</td></tr>
+                <tr><td><strong>Documentos</strong></td><td>Documentaci&oacute;n legal (KYC, NDA, MSPA) por entidad</td></tr>
+              </tbody>
+            </table>
+            <div class="doc-tip">
+              <i class="fas fa-info-circle"></i>
+              La importaci&oacute;n actualiza registros existentes (por c&oacute;digo) e inserta los nuevos autom&aacute;ticamente.
+            </div>
+          </div>
+
+          <div class="doc-section">
+            <h2>Asistente IA</h2>
+            <p>El bot&oacute;n <i class="fas fa-robot"></i> en la esquina inferior derecha abre el <strong>asistente de inteligencia artificial</strong>, que consulta datos reales de la base de datos. Tipos de consulta soportados:</p>
+            <ul>
+              <li><strong>Por pa&iacute;s:</strong> &quot;India&quot;, &quot;Brasil&quot; &mdash; muestra entidades y oportunidades del pa&iacute;s</li>
+              <li><strong>Documentos:</strong> &quot;NDA&quot;, &quot;documentos&quot; &mdash; estado de documentaci&oacute;n legal</li>
+              <li><strong>Oportunidades:</strong> &quot;pipeline&quot;, &quot;oportunidades&quot; &mdash; resumen del pipeline comercial</li>
+              <li><strong>Pr&oacute;ximos pasos:</strong> &quot;acciones&quot;, &quot;pr&oacute;ximos pasos&quot; &mdash; acciones pendientes</li>
+              <li><strong>Contactos:</strong> &quot;seguimiento&quot;, &quot;contactos&quot; &mdash; estado de contactos</li>
+              <li><strong>Resumen:</strong> &quot;dashboard&quot;, &quot;resumen&quot; &mdash; resumen ejecutivo global</li>
+            </ul>
+          </div>
+
+          <div class="doc-section">
+            <h2>Gesti&oacute;n de Usuarios <span class="badge badge-purple">Solo Admin</span></h2>
+            <p>Los administradores pueden crear nuevos usuarios desde el men&uacute; <strong>&quot;Usuarios&quot;</strong>. Cada usuario tiene: nombre de usuario, contrase&ntilde;a, nombre visible y rol (admin o user).</p>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ============ DOC: BBDD ============ -->
+      <div id="view-doc-bbdd" class="view hidden">
+        <div class="top-bar">
+          <h1><i class="fas fa-database"></i> Dise&ntilde;o de Base de Datos</h1>
+        </div>
+        <div class="doc-content">
+
+          <div class="doc-section">
+            <h2>Tecnolog&iacute;a</h2>
+            <ul>
+              <li><strong>Motor:</strong> SQLite 3 mediante la librer&iacute;a <code>better-sqlite3</code> (s&iacute;ncrona, r&aacute;pida)</li>
+              <li><strong>Modo WAL:</strong> Activado para mejor rendimiento en lecturas concurrentes</li>
+              <li><strong>Foreign Keys:</strong> Habilitadas (<code>PRAGMA foreign_keys = ON</code>)</li>
+              <li><strong>Archivo:</strong> <code>crm.db</code> en la ra&iacute;z del proyecto</li>
+            </ul>
+          </div>
+
+          <div class="doc-section">
+            <h2>Diagrama de Relaciones</h2>
+            <pre class="doc-code" style="font-size:14px;line-height:1.8;">
+ ┌─────────┐       ┌──────────────┐       ┌─────────────┐
+ │  Pais   │──1:N──│  Entidades   │──1:N──│  Contactos  │
+ └─────────┘       │              │       └─────────────┘
+                   │              │──1:N──┌─────────────────┐
+                   │              │       │  Oportunidades  │
+                   │              │       └─────────────────┘
+                   │              │──1:N──┌──────────────┐
+                   └──────────────┘       │  Documentos  │
+                                          └──────────────┘
+
+ ┌────────────┐
+ │  Usuarios  │  (tabla independiente)
+ └────────────┘</pre>
+          </div>
+
+          <div class="doc-section">
+            <h2>Tabla: Pais</h2>
+            <table class="data-table">
+              <thead><tr><th>Columna</th><th>Tipo</th><th>Clave</th><th>Descripci&oacute;n</th></tr></thead>
+              <tbody>
+                <tr><td>CodigoPaisNormalizado</td><td>TEXT</td><td>PK</td><td>C&oacute;digo ISO 3166-1 alpha-3 del pa&iacute;s (ej: ESP, USA, IND). Usado como FK en Entidades y como clave del mapa interactivo.</td></tr>
+                <tr><td>Nombre</td><td>TEXT</td><td></td><td>Nombre del pa&iacute;s</td></tr>
+                <tr><td>Region</td><td>TEXT</td><td></td><td>Regi&oacute;n geogr&aacute;fica</td></tr>
+                <tr><td>ReferenciaIndice</td><td>TEXT</td><td></td><td>&Iacute;ndice de referencia</td></tr>
+                <tr><td>LinkFichaPais</td><td>TEXT</td><td></td><td>Enlace a ficha del pa&iacute;s</td></tr>
+                <tr><td>PersonaReferenciaOportun</td><td>TEXT</td><td></td><td>Persona de referencia</td></tr>
+                <tr><td>Comentarios</td><td>TEXT</td><td></td><td>Comentarios</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="doc-section">
+            <h2>Tabla: Entidades</h2>
+            <table class="data-table">
+              <thead><tr><th>Columna</th><th>Tipo</th><th>Clave</th><th>Descripci&oacute;n</th></tr></thead>
+              <tbody>
+                <tr><td>CodigoEntidad</td><td>TEXT</td><td>PK</td><td>C&oacute;digo &uacute;nico de la entidad</td></tr>
+                <tr><td>Compania</td><td>TEXT</td><td></td><td>Nombre de la compa&ntilde;&iacute;a</td></tr>
+                <tr><td>Region</td><td>TEXT</td><td></td><td>Regi&oacute;n</td></tr>
+                <tr><td>Tipo</td><td>TEXT</td><td></td><td>Tipo (Matriz/Filial)</td></tr>
+                <tr><td>CodigoPaisNormalizado</td><td>TEXT</td><td>FK &rarr; Pais</td><td>Pa&iacute;s de la entidad</td></tr>
+                <tr><td>FiscalCode</td><td>TEXT</td><td></td><td>C&oacute;digo fiscal</td></tr>
+                <tr><td>LEI</td><td>TEXT</td><td></td><td>Legal Entity Identifier</td></tr>
+                <tr><td>Ticker</td><td>TEXT</td><td></td><td>Ticker burs&aacute;til</td></tr>
+                <tr><td>DunsNumber</td><td>TEXT</td><td></td><td>N&uacute;mero DUNS</td></tr>
+                <tr><td>Direccion</td><td>TEXT</td><td></td><td>Direcci&oacute;n</td></tr>
+                <tr><td>Comentarios</td><td>TEXT</td><td></td><td>Comentarios</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="doc-section">
+            <h2>Tabla: Contactos</h2>
+            <table class="data-table">
+              <thead><tr><th>Columna</th><th>Tipo</th><th>Clave</th><th>Descripci&oacute;n</th></tr></thead>
+              <tbody>
+                <tr><td>id</td><td>INTEGER</td><td>PK (auto)</td><td>ID interno</td></tr>
+                <tr><td>CodigoContacto</td><td>TEXT</td><td>UNIQUE</td><td>C&oacute;digo auto-generado CON-XXXXX</td></tr>
+                <tr><td>CodigoEntidad</td><td>TEXT</td><td>FK &rarr; Entidades</td><td>Entidad asociada</td></tr>
+                <tr><td>Nombre</td><td>TEXT</td><td></td><td>Nombre completo</td></tr>
+                <tr><td>Cargo</td><td>TEXT</td><td></td><td>Cargo en la empresa</td></tr>
+                <tr><td>Email</td><td>TEXT</td><td></td><td>Correo electr&oacute;nico</td></tr>
+                <tr><td>Telefono1</td><td>TEXT</td><td></td><td>Tel&eacute;fono principal</td></tr>
+                <tr><td>Telefono2</td><td>TEXT</td><td></td><td>Tel&eacute;fono secundario</td></tr>
+                <tr><td>Via</td><td>TEXT</td><td></td><td>V&iacute;a de contacto</td></tr>
+                <tr><td>FechaUltimoContacto</td><td>TEXT</td><td></td><td>&Uacute;ltima fecha de contacto</td></tr>
+                <tr><td>DemorarContactoAfecha</td><td>TEXT</td><td></td><td>Fecha para demorar contacto</td></tr>
+                <tr><td>ProbabilidadExito</td><td>TEXT</td><td></td><td>Muy Alta / Alta / Media / Baja</td></tr>
+                <tr><td>Linkedin</td><td>TEXT</td><td></td><td>Perfil de LinkedIn</td></tr>
+                <tr><td>Comentarios</td><td>TEXT</td><td></td><td>Comentarios</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="doc-section">
+            <h2>Tabla: Oportunidades</h2>
+            <table class="data-table">
+              <thead><tr><th>Columna</th><th>Tipo</th><th>Clave</th><th>Descripci&oacute;n</th></tr></thead>
+              <tbody>
+                <tr><td>id</td><td>INTEGER</td><td>PK (auto)</td><td>ID interno</td></tr>
+                <tr><td>CodigoOportunidad</td><td>TEXT</td><td>UNIQUE</td><td>C&oacute;digo auto-generado OPO-XXXXX</td></tr>
+                <tr><td>CodigoEntidad</td><td>TEXT</td><td>FK &rarr; Entidades</td><td>Entidad asociada</td></tr>
+                <tr><td>Contraparte</td><td>TEXT</td><td></td><td>Nombre de contraparte</td></tr>
+                <tr><td>OwnerAccount</td><td>TEXT</td><td></td><td>Responsable de la cuenta</td></tr>
+                <tr><td>Entrega</td><td>TEXT</td><td></td><td>Tipo de entrega</td></tr>
+                <tr><td>Periodo</td><td>TEXT</td><td></td><td>Periodo</td></tr>
+                <tr><td>Volumen</td><td>TEXT</td><td></td><td>Volumen</td></tr>
+                <tr><td>Precio</td><td>TEXT</td><td></td><td>Precio</td></tr>
+                <tr><td>SpecsContrapartePCS</td><td>TEXT</td><td></td><td>Especificaciones PCS</td></tr>
+                <tr><td>ProximosPasosNTGY</td><td>TEXT</td><td></td><td>Pr&oacute;ximos pasos NTGY</td></tr>
+                <tr><td>ProximosPasosContraparte</td><td>TEXT</td><td></td><td>Pr&oacute;ximos pasos contraparte</td></tr>
+                <tr><td>Timing</td><td>TEXT</td><td></td><td>Inmediato / Medio plazo / Largo plazo</td></tr>
+                <tr><td>Origen</td><td>TEXT</td><td></td><td>Origen de la oportunidad</td></tr>
+                <tr><td>Comentarios</td><td>TEXT</td><td></td><td>Comentarios</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="doc-section">
+            <h2>Tabla: Documentos</h2>
+            <table class="data-table">
+              <thead><tr><th>Columna</th><th>Tipo</th><th>Clave</th><th>Descripci&oacute;n</th></tr></thead>
+              <tbody>
+                <tr><td>id</td><td>INTEGER</td><td>PK (auto)</td><td>ID interno</td></tr>
+                <tr><td>CodigoDocumento</td><td>TEXT</td><td>UNIQUE</td><td>C&oacute;digo auto-generado DOC-XXXXX</td></tr>
+                <tr><td>CodigoEntidad</td><td>TEXT</td><td>FK &rarr; Entidades</td><td>Entidad asociada</td></tr>
+                <tr><td>KYC_S_N</td><td>TEXT</td><td></td><td>KYC completado (S&iacute;/No)</td></tr>
+                <tr><td>KYC_link</td><td>TEXT</td><td></td><td>Enlace al documento KYC</td></tr>
+                <tr><td>NDA_S_N</td><td>TEXT</td><td></td><td>NDA firmado (S&iacute;/No)</td></tr>
+                <tr><td>FechaExpiracionNDA</td><td>TEXT</td><td></td><td>Fecha de expiraci&oacute;n del NDA</td></tr>
+                <tr><td>NDALink</td><td>TEXT</td><td></td><td>Enlace al NDA</td></tr>
+                <tr><td>MSPASN</td><td>TEXT</td><td></td><td>MSPA completado (S&iacute;/No)</td></tr>
+                <tr><td>LinkMSPA</td><td>TEXT</td><td></td><td>Enlace al MSPA</td></tr>
+                <tr><td>Comentarios</td><td>TEXT</td><td></td><td>Comentarios</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="doc-section">
+            <h2>Tabla: Usuarios</h2>
+            <table class="data-table">
+              <thead><tr><th>Columna</th><th>Tipo</th><th>Clave</th><th>Descripci&oacute;n</th></tr></thead>
+              <tbody>
+                <tr><td>id</td><td>INTEGER</td><td>PK (auto)</td><td>ID interno</td></tr>
+                <tr><td>username</td><td>TEXT</td><td>UNIQUE</td><td>Nombre de usuario para login</td></tr>
+                <tr><td>password</td><td>TEXT</td><td></td><td>Hash bcrypt de la contrase&ntilde;a</td></tr>
+                <tr><td>nombre</td><td>TEXT</td><td></td><td>Nombre visible</td></tr>
+                <tr><td>rol</td><td>TEXT</td><td></td><td>admin / user</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="doc-section">
+            <h2>Migraciones Autom&aacute;ticas</h2>
+            <p>Los c&oacute;digos de contactos, oportunidades y documentos se generan autom&aacute;ticamente al crear registros sin c&oacute;digo:</p>
+            <table class="data-table">
+              <thead><tr><th>Tabla</th><th>Formato</th><th>Ejemplo</th></tr></thead>
+              <tbody>
+                <tr><td>Contactos</td><td>CON-XXXXX</td><td>CON-00001</td></tr>
+                <tr><td>Oportunidades</td><td>OPO-XXXXX</td><td>OPO-00001</td></tr>
+                <tr><td>Documentos</td><td>DOC-XXXXX</td><td>DOC-00001</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="doc-section">
+            <h2>API REST &mdash; Endpoints</h2>
+            <table class="data-table">
+              <thead><tr><th>M&eacute;todo</th><th>Endpoint</th><th>Descripci&oacute;n</th></tr></thead>
+              <tbody>
+                <tr><td><span class="badge badge-green">POST</span></td><td>/api/login</td><td>Iniciar sesi&oacute;n</td></tr>
+                <tr><td><span class="badge badge-green">POST</span></td><td>/api/logout</td><td>Cerrar sesi&oacute;n</td></tr>
+                <tr><td><span class="badge badge-blue">GET</span></td><td>/api/me</td><td>Usuario actual (sesi&oacute;n)</td></tr>
+                <tr><td><span class="badge badge-blue">GET</span></td><td>/api/mi-perfil</td><td>Perfil del usuario</td></tr>
+                <tr><td><span class="badge badge-orange">PUT</span></td><td>/api/mi-perfil</td><td>Cambiar contrase&ntilde;a</td></tr>
+                <tr><td><span class="badge badge-blue">GET</span></td><td>/api/dashboard</td><td>Estad&iacute;sticas del dashboard</td></tr>
+                <tr><td><span class="badge badge-blue">GET</span></td><td>/api/search?q=...</td><td>B&uacute;squeda global de entidades</td></tr>
+                <tr><td><span class="badge badge-blue">GET</span></td><td>/api/entidades</td><td>Listar entidades</td></tr>
+                <tr><td><span class="badge badge-blue">GET</span></td><td>/api/entidades/:id</td><td>Obtener entidad</td></tr>
+                <tr><td><span class="badge badge-blue">GET</span></td><td>/api/entidades/:id/detail</td><td>Detalle completo (con contactos, oportunidades, docs)</td></tr>
+                <tr><td><span class="badge badge-green">POST</span></td><td>/api/entidades</td><td>Crear entidad</td></tr>
+                <tr><td><span class="badge badge-orange">PUT</span></td><td>/api/entidades/:id</td><td>Actualizar entidad</td></tr>
+                <tr><td><span class="badge badge-red">DELETE</span></td><td>/api/entidades/:id</td><td>Eliminar entidad</td></tr>
+                <tr><td><span class="badge badge-blue">GET</span></td><td>/api/contactos</td><td>Listar contactos</td></tr>
+                <tr><td><span class="badge badge-green">POST</span></td><td>/api/contactos</td><td>Crear contacto</td></tr>
+                <tr><td><span class="badge badge-orange">PUT</span></td><td>/api/contactos/:id</td><td>Actualizar contacto</td></tr>
+                <tr><td><span class="badge badge-red">DELETE</span></td><td>/api/contactos/:id</td><td>Eliminar contacto</td></tr>
+                <tr><td><span class="badge badge-blue">GET</span></td><td>/api/oportunidades</td><td>Listar oportunidades</td></tr>
+                <tr><td><span class="badge badge-green">POST</span></td><td>/api/oportunidades</td><td>Crear oportunidad</td></tr>
+                <tr><td><span class="badge badge-orange">PUT</span></td><td>/api/oportunidades/:id</td><td>Actualizar oportunidad</td></tr>
+                <tr><td><span class="badge badge-red">DELETE</span></td><td>/api/oportunidades/:id</td><td>Eliminar oportunidad</td></tr>
+                <tr><td><span class="badge badge-blue">GET</span></td><td>/api/documentos</td><td>Listar documentos</td></tr>
+                <tr><td><span class="badge badge-green">POST</span></td><td>/api/documentos</td><td>Crear documento</td></tr>
+                <tr><td><span class="badge badge-orange">PUT</span></td><td>/api/documentos/:id</td><td>Actualizar documento</td></tr>
+                <tr><td><span class="badge badge-red">DELETE</span></td><td>/api/documentos/:id</td><td>Eliminar documento</td></tr>
+                <tr><td><span class="badge badge-blue">GET</span></td><td>/api/paises</td><td>Listar pa&iacute;ses</td></tr>
+                <tr><td><span class="badge badge-green">POST</span></td><td>/api/paises</td><td>Crear pa&iacute;s</td></tr>
+                <tr><td><span class="badge badge-orange">PUT</span></td><td>/api/paises/:id</td><td>Actualizar pa&iacute;s</td></tr>
+                <tr><td><span class="badge badge-red">DELETE</span></td><td>/api/paises/:id</td><td>Eliminar pa&iacute;s</td></tr>
+                <tr><td><span class="badge badge-blue">GET</span></td><td>/api/usuarios</td><td>Listar usuarios (admin)</td></tr>
+                <tr><td><span class="badge badge-green">POST</span></td><td>/api/usuarios</td><td>Crear usuario (admin)</td></tr>
+                <tr><td><span class="badge badge-green">POST</span></td><td>/api/import</td><td>Importar Excel</td></tr>
+                <tr><td><span class="badge badge-green">POST</span></td><td>/api/ai/chat</td><td>Consulta al asistente IA</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="doc-section">
+            <h2>Dependencias npm</h2>
+            <table class="data-table">
+              <thead><tr><th>Paquete</th><th>Versi&oacute;n</th><th>Uso</th></tr></thead>
+              <tbody>
+                <tr><td>express</td><td>^5.x</td><td>Framework web / API REST</td></tr>
+                <tr><td>better-sqlite3</td><td>^12.x</td><td>Driver SQLite s&iacute;ncrono</td></tr>
+                <tr><td>express-session</td><td>^1.x</td><td>Gesti&oacute;n de sesiones HTTP</td></tr>
+                <tr><td>cors</td><td>^2.x</td><td>Cabeceras CORS para peticiones cross-origin</td></tr>
+                <tr><td>multer</td><td>^2.x</td><td>Upload de archivos (import Excel)</td></tr>
+                <tr><td>xlsx</td><td>^0.18.x</td><td>Lectura de archivos Excel</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ============ DOC: PRESENTACION ============ -->
+      <div id="view-doc-presentacion" class="view hidden">
+        <div class="top-bar">
+          <h1><i class="fas fa-tv"></i> Presentaci&oacute;n</h1>
+          <button class="btn btn-primary" onclick="initPresentation()"><i class="fas fa-play"></i> Iniciar Presentaci&oacute;n</button>
+        </div>
+        <div class="doc-content">
+          <p>Pulsa <strong>&quot;Iniciar Presentaci&oacute;n&quot;</strong> para ver la presentaci&oacute;n a pantalla completa. Usa las flechas <kbd>&larr;</kbd> <kbd>&rarr;</kbd> o los botones para navegar.</p>
+        </div>
+      </div>
+
+      <!-- PRESENTATION FULLSCREEN OVERLAY -->
+      <div class="presentation-container" id="presentationContainer">
+        <div class="presentation-controls">
+          <button class="pres-btn" onclick="changeSlide(-1)"><i class="fas fa-arrow-left"></i></button>
+          <span class="pres-counter" id="presCounter">1 / 8</span>
+          <button class="pres-btn" onclick="changeSlide(1)"><i class="fas fa-arrow-right"></i></button>
+          <button class="pres-btn pres-exit" onclick="exitPresentation()"><i class="fas fa-times"></i> Salir</button>
+        </div>
+
+        <div class="slide active" data-slide="1">
+          <div class="slide-content slide-cover">
+            <div class="slide-logo"><i class="fas fa-fire-flame-curved"></i></div>
+            <h1>GNL CRM</h1>
+            <h2>Gestor Comercial de Gas Natural Licuado</h2>
+            <p class="slide-subtitle">Soluci&oacute;n integral para la gesti&oacute;n de relaciones comerciales en el mercado internacional de GNL</p>
+          </div>
+        </div>
+
+        <div class="slide" data-slide="2">
+          <div class="slide-content">
+            <h1><i class="fas fa-exclamation-triangle"></i> Problema / Necesidad</h1>
+            <div class="slide-grid">
+              <div class="slide-card">
+                <div class="slide-card-icon"><i class="fas fa-file-excel"></i></div>
+                <h3>Datos dispersos</h3>
+                <p>Informaci&oacute;n comercial repartida en m&uacute;ltiples hojas Excel sin conexi&oacute;n entre s&iacute;</p>
+              </div>
+              <div class="slide-card">
+                <div class="slide-card-icon"><i class="fas fa-clock"></i></div>
+                <h3>Seguimiento manual</h3>
+                <p>Control de contactos, NDAs y oportunidades basado en memoria y correos</p>
+              </div>
+              <div class="slide-card">
+                <div class="slide-card-icon"><i class="fas fa-eye-slash"></i></div>
+                <h3>Sin visibilidad</h3>
+                <p>Falta de dashboards y m&eacute;tricas en tiempo real del pipeline comercial</p>
+              </div>
+              <div class="slide-card">
+                <div class="slide-card-icon"><i class="fas fa-users-slash"></i></div>
+                <h3>Sin colaboraci&oacute;n</h3>
+                <p>Dificultad para compartir estado y progreso entre miembros del equipo</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="slide" data-slide="3">
+          <div class="slide-content">
+            <h1><i class="fas fa-lightbulb"></i> Soluci&oacute;n Propuesta</h1>
+            <div class="slide-hero">
+              <p class="slide-hero-text">Una <strong>aplicaci&oacute;n web centralizada</strong> que re&uacute;ne toda la informaci&oacute;n comercial en un &uacute;nico punto de acceso, accesible desde cualquier navegador.</p>
+            </div>
+            <div class="slide-features-row">
+              <div class="slide-feature"><i class="fas fa-globe"></i><span>Acceso web</span></div>
+              <div class="slide-feature"><i class="fas fa-database"></i><span>Base de datos &uacute;nica</span></div>
+              <div class="slide-feature"><i class="fas fa-chart-pie"></i><span>Dashboard en tiempo real</span></div>
+              <div class="slide-feature"><i class="fas fa-robot"></i><span>Asistente IA integrado</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="slide" data-slide="4">
+          <div class="slide-content">
+            <h1><i class="fas fa-star"></i> Funcionalidades Clave</h1>
+            <div class="slide-list">
+              <div class="slide-list-item"><span class="slide-num">1</span><div><strong>Gesti&oacute;n de Entidades</strong><br>CRUD completo de empresas con datos corporativos, fiscales y geogr&aacute;ficos</div></div>
+              <div class="slide-list-item"><span class="slide-num">2</span><div><strong>Contactos &amp; Seguimiento</strong><br>Control de personas clave con probabilidad de &eacute;xito y fechas de seguimiento</div></div>
+              <div class="slide-list-item"><span class="slide-num">3</span><div><strong>Pipeline de Oportunidades</strong><br>Tracking de ofertas con volumen, precio, timing y pr&oacute;ximos pasos</div></div>
+              <div class="slide-list-item"><span class="slide-num">4</span><div><strong>Documentaci&oacute;n Legal</strong><br>Estado de KYC, NDA y MSPA con alertas de expiraci&oacute;n</div></div>
+              <div class="slide-list-item"><span class="slide-num">5</span><div><strong>Dashboard &amp; BI</strong><br>Visualizaci&oacute;n en tiempo real con gr&aacute;ficos interactivos</div></div>
+              <div class="slide-list-item"><span class="slide-num">6</span><div><strong>Asistente IA</strong><br>Consultas en lenguaje natural sobre datos del CRM</div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="slide" data-slide="5">
+          <div class="slide-content">
+            <h1><i class="fas fa-cogs"></i> Arquitectura T&eacute;cnica</h1>
+            <div class="slide-arch">
+              <div class="slide-arch-layer slide-arch-frontend">
+                <h3>Frontend</h3>
+                <p>HTML5 + CSS3 + JS Vanilla (SPA)</p>
+              </div>
+              <div class="slide-arch-arrow"><i class="fas fa-exchange-alt"></i> API REST</div>
+              <div class="slide-arch-layer slide-arch-backend">
+                <h3>Backend</h3>
+                <p>Node.js + Express.js</p>
+              </div>
+              <div class="slide-arch-arrow"><i class="fas fa-exchange-alt"></i> SQL</div>
+              <div class="slide-arch-layer slide-arch-db">
+                <h3>Base de Datos</h3>
+                <p>SQLite 3 (WAL mode)</p>
+              </div>
+            </div>
+            <div class="slide-tech-badges">
+              <span>Node.js</span><span>Express</span><span>SQLite</span><span>bcrypt</span><span>better-sqlite3</span><span>xlsx</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="slide" data-slide="6">
+          <div class="slide-content">
+            <h1><i class="fas fa-check-circle"></i> Ventajas del Sistema</h1>
+            <div class="slide-grid">
+              <div class="slide-card slide-card-good">
+                <h3><i class="fas fa-rocket"></i> Ligero y r&aacute;pido</h3>
+                <p>Sin dependencias pesadas. Arranca en segundos con un solo comando.</p>
+              </div>
+              <div class="slide-card slide-card-good">
+                <h3><i class="fas fa-plug"></i> Cero infraestructura</h3>
+                <p>SQLite embebido, sin necesidad de servidor de BBDD externo.</p>
+              </div>
+              <div class="slide-card slide-card-good">
+                <h3><i class="fas fa-cloud"></i> Listo para Azure</h3>
+                <p>Compatible con Azure App Service, Azure SQL, Power BI y Power Automate.</p>
+              </div>
+              <div class="slide-card slide-card-good">
+                <h3><i class="fas fa-file-import"></i> Importaci&oacute;n Excel</h3>
+                <p>Migraci&oacute;n instant&aacute;nea desde los ficheros Excel actuales del equipo.</p>
+              </div>
+              <div class="slide-card slide-card-good">
+                <h3><i class="fas fa-lock"></i> Seguro</h3>
+                <p>Autenticaci&oacute;n con bcrypt, roles diferenciados admin/user.</p>
+              </div>
+              <div class="slide-card slide-card-good">
+                <h3><i class="fas fa-robot"></i> IA integrada</h3>
+                <p>Consultas inteligentes sobre los datos sin salir de la aplicaci&oacute;n.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="slide" data-slide="7">
+          <div class="slide-content">
+            <h1><i class="fas fa-exclamation-circle"></i> Inconvenientes / Limitaciones</h1>
+            <div class="slide-grid" style="grid-template-columns: 1fr 1fr;">
+              <div class="slide-card slide-card-warn">
+                <h3><i class="fas fa-database"></i> SQLite en producci&oacute;n</h3>
+                <p>SQLite no soporta escrituras concurrentes masivas. Para &gt;50 usuarios simult&aacute;neos se recomienda migrar a Azure SQL.</p>
+              </div>
+              <div class="slide-card slide-card-warn">
+                <h3><i class="fas fa-memory"></i> Sesiones en memoria</h3>
+                <p>Las sesiones se pierden al reiniciar el servidor. Para producci&oacute;n se recomienda Redis o almacenamiento persistente.</p>
+              </div>
+              <div class="slide-card slide-card-warn">
+                <h3><i class="fas fa-mobile-alt"></i> Responsive limitado</h3>
+                <p>Dise&ntilde;o optimizado para escritorio. La experiencia m&oacute;vil es funcional pero no est&aacute; completamente pulida.</p>
+              </div>
+              <div class="slide-card slide-card-warn">
+                <h3><i class="fas fa-bell-slash"></i> Sin notificaciones push</h3>
+                <p>No env&iacute;a alertas autom&aacute;ticas (ej. NDA expirando). Requiere integraci&oacute;n con Power Automate.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="slide" data-slide="8">
+          <div class="slide-content slide-cover">
+            <h1><i class="fas fa-road"></i> Pr&oacute;ximos Pasos / Roadmap</h1>
+            <div class="slide-roadmap">
+              <div class="slide-roadmap-item">
+                <div class="slide-roadmap-phase">Fase 1</div>
+                <div class="slide-roadmap-desc"><strong>Despliegue en Azure App Service</strong><br>Puesta en marcha con SQLite para equipo reducido</div>
+              </div>
+              <div class="slide-roadmap-item">
+                <div class="slide-roadmap-phase">Fase 2</div>
+                <div class="slide-roadmap-desc"><strong>Migraci&oacute;n a Azure SQL</strong><br>Escalabilidad, backups autom&aacute;ticos, alta disponibilidad</div>
+              </div>
+              <div class="slide-roadmap-item">
+                <div class="slide-roadmap-phase">Fase 3</div>
+                <div class="slide-roadmap-desc"><strong>Power BI + Power Automate</strong><br>Dashboards avanzados y automatizaci&oacute;n de flujos</div>
+              </div>
+              <div class="slide-roadmap-item">
+                <div class="slide-roadmap-phase">Fase 4</div>
+                <div class="slide-roadmap-desc"><strong>Integraciones M365</strong><br>Outlook, Teams y Power Apps para movilidad</div>
+              </div>
+            </div>
+            <p class="slide-subtitle" style="margin-top:40px;">&iexcl;Gracias!</p>
           </div>
         </div>
       </div>
@@ -282,6 +982,9 @@
     </div>
   </div>
 
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""></script>
   <script src="/js/app.js"></script>
 </body>
 </html>
