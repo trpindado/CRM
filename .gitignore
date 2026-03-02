@@ -9,3 +9,5 @@ server.log
 *.db.backup
 # Variables de entorno (nunca a GitHub)
 .env
+# CSVs de exportación con datos reales
+Migracion/exports/
