@@ -501,82 +501,59 @@ function getCrmContext(message) {
   const stats = getDashboardStats();
   lines.push('=== RESUMEN GLOBAL CRM ===');
   lines.push(`Entidades: ${stats.totalEntidades} | Contactos: ${stats.totalContactos} | Oportunidades: ${stats.totalOportunidades} | Documentos: ${stats.totalDocumentos} | Países: ${stats.totalPaises}`);
-  if (stats.oportunidadesPorTiming.length > 0) {
-    lines.push('Oportunidades por timing: ' + stats.oportunidadesPorTiming.map(t => `${t.Timing || 'Sin timing'}: ${t.total}`).join(', '));
+  if (stats.oportunidadesPorTiming && stats.oportunidadesPorTiming.length > 0) {
+    lines.push('Pipeline por timing: ' + stats.oportunidadesPorTiming.map(t => `${t.Timing || 'Sin timing'}: ${t.total}`).join(', '));
   }
 
-  // Country context
-  const paises = db.prepare('SELECT CodigoPaisNormalizado, Nombre FROM Pais').all();
-  for (const pais of paises) {
-    if (msg.includes(pais.Nombre.toLowerCase()) || msg.includes(pais.CodigoPaisNormalizado.toLowerCase())) {
-      const entidades = db.prepare('SELECT CodigoEntidad, Compania, Tipo FROM Entidades WHERE CodigoPaisNormalizado = ? ORDER BY Compania').all(pais.CodigoPaisNormalizado);
-      const opors = db.prepare(`
-        SELECT o.Contraparte, o.Volumen, o.Precio, o.Timing, e.Compania
-        FROM Oportunidades o JOIN Entidades e ON o.CodigoEntidad = e.CodigoEntidad
-        WHERE e.CodigoPaisNormalizado = ?
-      `).all(pais.CodigoPaisNormalizado);
+  // Always include full entity list
+  const todasEntidades = db.prepare('SELECT CodigoEntidad, Compania, Tipo, CodigoPaisNormalizado, Region FROM Entidades ORDER BY Compania').all();
+  lines.push('\n=== ENTIDADES ===');
+  todasEntidades.forEach(e => {
+    lines.push(`${e.Compania} [${e.CodigoEntidad}] | Tipo: ${e.Tipo || 'N/A'} | País: ${e.CodigoPaisNormalizado || 'N/A'} | Región: ${e.Region || 'N/A'}`);
+  });
 
-      lines.push(`\n=== PAÍS: ${pais.Nombre} (${pais.CodigoPaisNormalizado}) ===`);
-      lines.push(`Entidades (${entidades.length}): ` + entidades.map(e => `${e.Compania} [${e.CodigoEntidad}] ${e.Tipo || ''}`).join(' | '));
-      if (opors.length > 0) {
-        lines.push(`Oportunidades (${opors.length}): ` + opors.map(o => `${o.Compania} - ${o.Contraparte || 'N/A'}, Vol:${o.Volumen || 'N/A'}, Timing:${o.Timing || 'N/A'}`).join(' | '));
-      }
-      break;
-    }
-  }
+  // Always include all opportunities
+  const todasOpors = db.prepare(`
+    SELECT o.CodigoOportunidad, o.Contraparte, o.Volumen, o.Precio, o.Timing, o.Origen,
+           o.ProximosPasosNTGY, o.ProximosPasosContraparte, o.Periodo, o.Entrega,
+           e.Compania, e.CodigoPaisNormalizado
+    FROM Oportunidades o JOIN Entidades e ON o.CodigoEntidad = e.CodigoEntidad
+    ORDER BY o.Timing, e.Compania
+  `).all();
+  lines.push('\n=== OPORTUNIDADES / PIPELINE ===');
+  todasOpors.forEach(o => {
+    lines.push(`[${o.CodigoOportunidad}] ${o.Compania} (${o.CodigoPaisNormalizado}) | Contraparte: ${o.Contraparte || 'N/A'} | Vol: ${o.Volumen || 'N/A'} | Precio: ${o.Precio || 'N/A'} | Timing: ${o.Timing || 'N/A'} | Entrega: ${o.Entrega || 'N/A'} | Próximos pasos NTGY: ${o.ProximosPasosNTGY || 'N/A'}`);
+  });
 
-  // NDA / document context
-  if (msg.includes('nda') || msg.includes('documento') || msg.includes('kyc') || msg.includes('mspa')) {
-    const docs = db.prepare(`
-      SELECT d.NDA_S_N, d.FechaExpiracionNDA, d.KYC_S_N, d.MSPASN, e.Compania, e.CodigoEntidad
-      FROM Documentos d JOIN Entidades e ON d.CodigoEntidad = e.CodigoEntidad
-      ORDER BY d.FechaExpiracionNDA ASC
-    `).all();
-    lines.push('\n=== DOCUMENTOS / NDAs ===');
-    docs.forEach(d => {
-      lines.push(`${d.Compania} [${d.CodigoEntidad}]: NDA=${d.NDA_S_N || 'N/A'}, Expira=${d.FechaExpiracionNDA || 'N/A'}, KYC=${d.KYC_S_N || 'N/A'}, MSPA=${d.MSPASN || 'N/A'}`);
-    });
-  }
+  // Always include all contacts
+  const todosContactos = db.prepare(`
+    SELECT c.Nombre, c.Cargo, c.Email, c.Via, c.FechaUltimoContacto, c.DemorarContactoAfecha,
+           c.ProbabilidadExito, c.Comentarios, e.Compania, e.CodigoPaisNormalizado
+    FROM Contactos c JOIN Entidades e ON c.CodigoEntidad = e.CodigoEntidad
+    ORDER BY c.DemorarContactoAfecha ASC, e.Compania
+  `).all();
+  lines.push('\n=== CONTACTOS ===');
+  todosContactos.forEach(c => {
+    lines.push(`${c.Nombre || 'N/A'} (${c.Compania}, ${c.CodigoPaisNormalizado}) | ${c.Cargo || 'N/A'} | Último contacto: ${c.FechaUltimoContacto || 'N/A'} | Seguimiento: ${c.DemorarContactoAfecha || 'N/A'} | Prob: ${c.ProbabilidadExito || 'N/A'}${c.Comentarios ? ' | Nota: ' + c.Comentarios : ''}`);
+  });
 
-  // Opportunities context
-  if (msg.includes('oportunidad') || msg.includes('pipeline') || msg.includes('timing')) {
-    const opors = db.prepare(`
-      SELECT o.Contraparte, o.Volumen, o.Precio, o.Timing, o.Origen, o.ProximosPasosNTGY, e.Compania
-      FROM Oportunidades o JOIN Entidades e ON o.CodigoEntidad = e.CodigoEntidad
-      ORDER BY o.id DESC LIMIT 20
-    `).all();
-    lines.push('\n=== OPORTUNIDADES (últimas 20) ===');
-    opors.forEach(o => {
-      lines.push(`${o.Compania}: ${o.Contraparte || 'N/A'} | Vol:${o.Volumen || 'N/A'} | Precio:${o.Precio || 'N/A'} | Timing:${o.Timing || 'N/A'} | Origen:${o.Origen || 'N/A'}`);
-    });
-  }
+  // Always include documents
+  const todosDocs = db.prepare(`
+    SELECT d.NDA_S_N, d.FechaExpiracionNDA, d.KYC_S_N, d.MSPASN, e.Compania, e.CodigoEntidad
+    FROM Documentos d JOIN Entidades e ON d.CodigoEntidad = e.CodigoEntidad
+    ORDER BY d.FechaExpiracionNDA ASC
+  `).all();
+  lines.push('\n=== DOCUMENTOS / NDAs / KYC ===');
+  todosDocs.forEach(d => {
+    lines.push(`${d.Compania} [${d.CodigoEntidad}]: NDA=${d.NDA_S_N || 'N/A'}, Expira=${d.FechaExpiracionNDA || 'N/A'}, KYC=${d.KYC_S_N || 'N/A'}, MSPA=${d.MSPASN || 'N/A'}`);
+  });
 
-  // Contact follow-up context
-  if (msg.includes('contacto') || msg.includes('seguimiento')) {
-    const contactos = db.prepare(`
-      SELECT c.Nombre, c.Cargo, c.Email, c.DemorarContactoAfecha, c.FechaUltimoContacto, c.ProbabilidadExito, e.Compania
-      FROM Contactos c JOIN Entidades e ON c.CodigoEntidad = e.CodigoEntidad
-      WHERE c.DemorarContactoAfecha IS NOT NULL AND c.DemorarContactoAfecha != ''
-      ORDER BY c.DemorarContactoAfecha ASC LIMIT 20
-    `).all();
-    lines.push('\n=== CONTACTOS CON SEGUIMIENTO PROGRAMADO ===');
-    contactos.forEach(c => {
-      lines.push(`${c.Nombre || 'N/A'} (${c.Compania}) - ${c.Cargo || 'N/A'} | Seguimiento: ${c.DemorarContactoAfecha} | Último contacto: ${c.FechaUltimoContacto || 'N/A'} | Prob: ${c.ProbabilidadExito || 'N/A'}`);
-    });
-  }
-
-  // Default extended context if no specific keyword matched
-  const hasSpecific = paises.some(p => msg.includes(p.Nombre.toLowerCase()) || msg.includes(p.CodigoPaisNormalizado.toLowerCase()))
-    || msg.includes('nda') || msg.includes('documento') || msg.includes('oportunidad')
-    || msg.includes('pipeline') || msg.includes('contacto') || msg.includes('seguimiento');
-
-  if (!hasSpecific) {
-    const topEntidades = db.prepare('SELECT CodigoEntidad, Compania, Tipo, CodigoPaisNormalizado FROM Entidades ORDER BY Compania LIMIT 30').all();
-    lines.push('\n=== ENTIDADES (primeras 30) ===');
-    topEntidades.forEach(e => {
-      lines.push(`${e.Compania} [${e.CodigoEntidad}] | Tipo: ${e.Tipo || 'N/A'} | País: ${e.CodigoPaisNormalizado || 'N/A'}`);
-    });
-  }
+  // Country-specific deep context if a country is mentioned
+  const paises = db.prepare('SELECT CodigoPaisNormalizado, Nombre, Region, ReferenciaIndice, Comentarios FROM Pais').all();
+  lines.push('\n=== PAÍSES ===');
+  paises.forEach(p => {
+    lines.push(`${p.Nombre} [${p.CodigoPaisNormalizado}] | Región: ${p.Region || 'N/A'} | Índice: ${p.ReferenciaIndice || 'N/A'}${p.Comentarios ? ' | ' + p.Comentarios : ''}`);
+  });
 
   return lines.join('\n');
 }
