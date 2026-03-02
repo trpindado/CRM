@@ -58,6 +58,5 @@ CRM/
 - `.env` — API key OpenAI
 - `Migracion/exports/` — CSVs exportados
 
-## Usuario y credenciales por defecto
-- admin / admin123
-- comercial / comercial123
+## Usuarios por defecto
+- Dos usuarios de desarrollo definidos en database.js (initSchema)
