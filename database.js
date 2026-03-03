@@ -161,8 +161,11 @@ function getEntityDetail(codigoEntidad) {
   const contactos = db.prepare('SELECT * FROM Contactos WHERE CodigoEntidad = ?').all(codigoEntidad);
   const oportunidades = db.prepare('SELECT * FROM Oportunidades WHERE CodigoEntidad = ?').all(codigoEntidad);
   const documentos = db.prepare('SELECT * FROM Documentos WHERE CodigoEntidad = ?').all(codigoEntidad);
+  const pais = entidad.CodigoPaisNormalizado
+    ? db.prepare('SELECT * FROM Pais WHERE CodigoPaisNormalizado = ?').get(entidad.CodigoPaisNormalizado)
+    : null;
 
-  return { entidad, contactos, oportunidades, documentos };
+  return { entidad, contactos, oportunidades, documentos, pais };
 }
 
 // Search across entities

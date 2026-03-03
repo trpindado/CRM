@@ -369,6 +369,7 @@ async function viewEntity(codigo) {
         <button class="tab active" onclick="showTab(this, 'tabContactos')"><i class="fas fa-address-book"></i> Contactos (${detail.contactos.length})</button>
         <button class="tab" onclick="showTab(this, 'tabOportunidades')"><i class="fas fa-handshake"></i> Oportunidades (${detail.oportunidades.length})</button>
         <button class="tab" onclick="showTab(this, 'tabDocumentos')"><i class="fas fa-file-alt"></i> Documentos (${detail.documentos.length})</button>
+        <button class="tab" onclick="showTab(this, 'tabPais')"><i class="fas fa-globe"></i> Pa&iacute;s</button>
       </div>
 
       <div class="tab-content active" id="tabContactos">
@@ -457,6 +458,44 @@ async function viewEntity(codigo) {
             </tbody>
           </table>
         </div>
+      </div>
+
+      <div class="tab-content" id="tabPais">
+        ${detail.pais ? `
+        <div class="detail-grid" style="margin-top:8px;">
+          <div class="detail-item">
+            <div class="label">C&oacute;digo Pa&iacute;s</div>
+            <div class="value"><span class="badge badge-blue">${esc(detail.pais.CodigoPaisNormalizado)}</span></div>
+          </div>
+          <div class="detail-item">
+            <div class="label">Nombre</div>
+            <div class="value"><strong>${esc(detail.pais.Nombre)}</strong></div>
+          </div>
+          <div class="detail-item">
+            <div class="label">Regi&oacute;n</div>
+            <div class="value">${esc(detail.pais.Region)}</div>
+          </div>
+          <div class="detail-item">
+            <div class="label">Referencia &Iacute;ndice</div>
+            <div class="value">${esc(detail.pais.ReferenciaIndice)}</div>
+          </div>
+          <div class="detail-item">
+            <div class="label">Ficha Pa&iacute;s</div>
+            <div class="value">${detail.pais.LinkFichaPais
+              ? `<a href="${esc(detail.pais.LinkFichaPais)}" target="_blank" title="Descargar ficha del pa&iacute;s" style="display:inline-flex;align-items:center;gap:6px;"><i class="fas fa-file-download" style="font-size:1.2em;color:#0078D4;"></i> Descargar</a>`
+              : '<span style="color:#aaa;">Sin enlace</span>'
+            }</div>
+          </div>
+          <div class="detail-item">
+            <div class="label">Persona Referencia Oportunidades</div>
+            <div class="value">${esc(detail.pais.PersonaReferenciaOportun)}</div>
+          </div>
+          <div class="detail-item" style="grid-column:1/-1;">
+            <div class="label">Comentarios</div>
+            <div class="value">${esc(detail.pais.Comentarios)}</div>
+          </div>
+        </div>
+        ` : '<div style="padding:30px;text-align:center;color:#888;"><i class="fas fa-globe" style="font-size:2em;margin-bottom:8px;display:block;"></i>No hay pa&iacute;s asociado a esta entidad.</div>'}
       </div>
     `;
   } catch (e) {
