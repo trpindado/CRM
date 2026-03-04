@@ -663,6 +663,7 @@ const tableSchemas = {
     labels: { CodigoPaisNormalizado: 'Codigo', Nombre: 'Nombre', Region: 'Region', ReferenciaIndice: 'Ref. Indice', LinkFichaPais: 'Link Ficha', PersonaReferenciaOportun: 'Persona Ref.', Comentarios: 'Comentarios' },
     displayCols: ['CodigoPaisNormalizado', 'Nombre', 'Region', 'ReferenciaIndice', 'LinkFichaPais', 'PersonaReferenciaOportun'],
     urlFields: ['LinkFichaPais'],
+    autoCode: true,
   },
   usuarios: {
     endpoint: 'usuarios',
@@ -883,6 +884,22 @@ function buildForm(schema, data, options = {}) {
         </div>`;
     }
 
+    // autoCode: PK auto-calculated from Nombre (create mode only)
+    if (schema.autoCode && col === schema.pk && !data[col]) {
+      return `
+        <div class="form-group">
+          <label>${schema.labels[col] || col}</label>
+          <input type="text" class="form-control" name="${col}" id="autoCodeField" value="" readonly placeholder="Se calculará del nombre" style="background:#f0f0f0;font-weight:600;letter-spacing:1px;">
+        </div>`;
+    }
+    if (schema.autoCode && col === 'Nombre' && !data[col]) {
+      return `
+        <div class="form-group">
+          <label>${schema.labels[col] || col}</label>
+          <input type="text" class="form-control" name="${col}" value="" oninput="calcAutoCode(this.value)" placeholder="Nombre del país">
+        </div>`;
+    }
+
     const inputType = 'text';
     const placeholder = col === 'password' && !data[col] ? 'Dejar vacío para no cambiar' : '';
     return `
@@ -891,6 +908,59 @@ function buildForm(schema, data, options = {}) {
         <input type="${inputType}" class="form-control" name="${col}" value="${esc(data[col] || '')}" placeholder="${placeholder}" ${isPk ? 'readonly' : ''}>
       </div>`;
   }).join('')}</div>`;
+}
+
+const PAIS_ISO3 = {
+  'afganistan':'AFG','albania':'ALB','alemania':'DEU','andorra':'AND','angola':'AGO',
+  'antigua y barbuda':'ATG','arabia saudita':'SAU','arabia saudi':'SAU','argelia':'DZA',
+  'argentina':'ARG','armenia':'ARM','australia':'AUS','austria':'AUT','azerbaiyan':'AZE',
+  'bahamas':'BHS','bahrein':'BHR','barein':'BHR','bangladesh':'BGD','banglades':'BGD',
+  'barbados':'BRB','belgica':'BEL','belice':'BLZ','benin':'BEN','bielorrusia':'BLR',
+  'birmania':'MMR','myanmar':'MMR','bolivia':'BOL','bosnia y herzegovina':'BIH',
+  'botsuana':'BWA','brasil':'BRA','brunei':'BRN','bulgaria':'BGR','burkina faso':'BFA',
+  'burundi':'BDI','butan':'BTN','bhutan':'BTN','cabo verde':'CPV','camboya':'KHM',
+  'camerun':'CMR','canada':'CAN','catar':'QAT','qatar':'QAT','chad':'TCD','chile':'CHL',
+  'china':'CHN','chipre':'CYP','colombia':'COL','comoras':'COM','corea del norte':'PRK',
+  'corea del sur':'KOR','costa rica':'CRI','croacia':'HRV','cuba':'CUB',
+  'dinamarca':'DNK','ecuador':'ECU','egipto':'EGY','el salvador':'SLV',
+  'emiratos arabes unidos':'ARE','eritrea':'ERI','eslovaquia':'SVK','eslovenia':'SVN',
+  'espana':'ESP','españa':'ESP','estados unidos':'USA','estonia':'EST','etiopia':'ETH',
+  'filipinas':'PHL','finlandia':'FIN','fiyi':'FJI','francia':'FRA','gabon':'GAB',
+  'gambia':'GMB','georgia':'GEO','ghana':'GHA','grecia':'GRC','guatemala':'GTM',
+  'guinea':'GIN','guinea ecuatorial':'GNQ','guinea-bissau':'GNB','guyana':'GUY',
+  'haiti':'HTI','honduras':'HND','hong kong':'HKG','hungria':'HUN','india':'IND',
+  'indonesia':'IDN','iran':'IRN','iraq':'IRQ','irak':'IRQ','irlanda':'IRL',
+  'islandia':'ISL','israel':'ISR','italia':'ITA','jamaica':'JAM','japon':'JPN',
+  'japon':'JPN','jordania':'JOR','kazajistan':'KAZ','kazajstan':'KAZ','kenia':'KEN',
+  'kirguistan':'KGZ','kiribati':'KIR','kuwait':'KWT','laos':'LAO','letonia':'LVA',
+  'libano':'LBN','liberia':'LBR','libia':'LBY','liechtenstein':'LIE','lituania':'LTU',
+  'luxemburgo':'LUX','macao':'MAC','madagascar':'MDG','malasia':'MYS','malaui':'MWI',
+  'malawi':'MWI','maldivas':'MDV','mali':'MLI','malta':'MLT','marruecos':'MAR',
+  'mauricio':'MUS','mauritania':'MRT','mexico':'MEX','mexico':'MEX','micronesia':'FSM',
+  'moldavia':'MDA','monaco':'MCO','mongolia':'MNG','montenegro':'MNE',
+  'mozambique':'MOZ','namibia':'NAM','nepal':'NPL','nicaragua':'NIC','niger':'NER',
+  'nigeria':'NGA','noruega':'NOR','nueva zelanda':'NZL','oman':'OMN','paises bajos':'NLD',
+  'paises bajos':'NLD','pakistan':'PAK','palestina':'PSE','panama':'PAN',
+  'papua nueva guinea':'PNG','paraguay':'PRY','peru':'PER','polonia':'POL',
+  'portugal':'PRT','reino unido':'GBR','republica checa':'CZE','republica dominicana':'DOM',
+  'ruanda':'RWA','rumania':'ROU','rusia':'RUS','senegal':'SEN','serbia':'SRB',
+  'sierra leona':'SLE','singapur':'SGP','siria':'SYR','somalia':'SOM',
+  'sri lanka':'LKA','sudafrica':'ZAF','sudan':'SDN','sudan del sur':'SSD',
+  'suecia':'SWE','suiza':'CHE','tailandia':'THA','taiwan':'TWN','tanzania':'TZA',
+  'tayikistan':'TJK','timor oriental':'TLS','togo':'TGO','trinidad y tobago':'TTO',
+  'tunez':'TUN','turkmenistan':'TKM','turquia':'TUR','ucrania':'UKR','uganda':'UGA',
+  'uruguay':'URY','uzbekistan':'UZB','vanuatu':'VUT','venezuela':'VEN','vietnam':'VNM',
+  'yemen':'YEM','yibuti':'DJI','zambia':'ZMB','zimbabue':'ZWE',
+};
+
+function calcAutoCode(nombre) {
+  const field = document.getElementById('autoCodeField');
+  if (!field) return;
+  const key = nombre.trim().toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  field.value = PAIS_ISO3[key] || '';
+  field.placeholder = PAIS_ISO3[key] ? '' : 'País no reconocido — revisa el nombre';
+  field.style.color = PAIS_ISO3[key] ? '' : '#c0392b';
 }
 
 async function populateEntityDropdown(selectedValue) {
