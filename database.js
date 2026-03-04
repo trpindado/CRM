@@ -302,68 +302,66 @@ function runMigrations() {
     }
   }
 
-  // Migration: replace gnlinfo.com placeholder links with real World Bank country data links
-  const placeholderCount = db.prepare("SELECT COUNT(*) as c FROM Pais WHERE LinkFichaPais LIKE '%gnlinfo.com%'").get().c;
-  if (placeholderCount > 0) {
-    const countryLinks = {
-      'ANG': 'https://data.worldbank.org/country/AGO',
-      'ARG': 'https://data.worldbank.org/country/ARG',
-      'AUS': 'https://data.worldbank.org/country/AUS',
-      'BGD': 'https://data.worldbank.org/country/BGD',
-      'BEL': 'https://data.worldbank.org/country/BEL',
-      'BRA': 'https://data.worldbank.org/country/BRA',
-      'CHL': 'https://data.worldbank.org/country/CHL',
-      'CHN': 'https://data.worldbank.org/country/CHN',
-      'COL': 'https://data.worldbank.org/country/COL',
-      'DNK': 'https://data.worldbank.org/country/DNK',
-      'EGY': 'https://data.worldbank.org/country/EGY',
-      'FIN': 'https://data.worldbank.org/country/FIN',
-      'FRA': 'https://data.worldbank.org/country/FRA',
-      'DEU': 'https://data.worldbank.org/country/DEU',
-      'GRC': 'https://data.worldbank.org/country/GRC',
-      'IND': 'https://data.worldbank.org/country/IND',
-      'IDN': 'https://data.worldbank.org/country/IDN',
-      'ITA': 'https://data.worldbank.org/country/ITA',
-      'JPN': 'https://data.worldbank.org/country/JPN',
-      'KWT': 'https://data.worldbank.org/country/KWT',
-      'LNG': 'https://www.giignl.org/resources/',
-      'MYS': 'https://data.worldbank.org/country/MYS',
-      'MRT': 'https://data.worldbank.org/country/MRT',
-      'MEX': 'https://data.worldbank.org/country/MEX',
-      'MOZ': 'https://data.worldbank.org/country/MOZ',
-      'NLD': 'https://data.worldbank.org/country/NLD',
-      'NGA': 'https://data.worldbank.org/country/NGA',
-      'OMN': 'https://data.worldbank.org/country/OMN',
-      'PAK': 'https://data.worldbank.org/country/PAK',
-      'PNG': 'https://data.worldbank.org/country/PNG',
-      'PER': 'https://data.worldbank.org/country/PER',
-      'PHL': 'https://data.worldbank.org/country/PHL',
-      'POL': 'https://data.worldbank.org/country/POL',
-      'PRT': 'https://data.worldbank.org/country/PRT',
-      'QAT': 'https://data.worldbank.org/country/QAT',
-      'RUS': 'https://data.worldbank.org/country/RUS',
-      'SGP': 'https://data.worldbank.org/country/SGP',
-      'KOR': 'https://data.worldbank.org/country/KOR',
-      'ESP': 'https://data.worldbank.org/country/ESP',
-      'SWE': 'https://data.worldbank.org/country/SWE',
-      'TWN': 'https://data.worldbank.org/country/TWN',
-      'TZA': 'https://data.worldbank.org/country/TZA',
-      'THA': 'https://data.worldbank.org/country/THA',
-      'TTO': 'https://data.worldbank.org/country/TTO',
-      'TUR': 'https://data.worldbank.org/country/TUR',
-      'ARE': 'https://data.worldbank.org/country/ARE',
-      'GBR': 'https://data.worldbank.org/country/GBR',
-      'USA': 'https://data.worldbank.org/country/USA',
-      'VNM': 'https://data.worldbank.org/country/VNM',
-    };
-    const updateLink = db.prepare("UPDATE Pais SET LinkFichaPais = ? WHERE CodigoPaisNormalizado = ? AND LinkFichaPais LIKE '%gnlinfo.com%'");
-    let updated = 0;
-    Object.entries(countryLinks).forEach(([code, link]) => {
-      const result = updateLink.run(link, code);
-      updated += result.changes;
-    });
-    console.log(`Migration: updated ${updated} country links to World Bank data`);
-  }
+  // Migration: update country links to CESCE risk country reports
+  const countryLinks = {
+    'ANG': 'https://www.cesce.es/es/w/riesgo-pais/riesgo-pais-angola',
+    'ARG': 'https://www.cesce.es/es/w/riesgo-pais/riesgo-pais-argentina',
+    'AUS': 'https://www.cesce.es/es/w/riesgo-pais/riesgo-pais-australia',
+    'BGD': 'https://www.cesce.es/es/w/riesgo-pais/riesgo-pais-bangladesh',
+    'BEL': 'https://www.cesce.es/es/w/riesgo-pais/riesgo-pais-belgica',
+    'BRA': 'https://www.cesce.es/es/w/riesgo-pais/riesgo-pais-brasil',
+    'CHL': 'https://www.cesce.es/es/w/riesgo-pais/riesgo-pais-chile',
+    'CHN': 'https://www.cesce.es/es/w/riesgo-pais/riesgo-pais-china',
+    'COL': 'https://www.cesce.es/es/w/riesgo-pais/riesgo-pais-colombia',
+    'DNK': 'https://www.cesce.es/es/w/riesgo-pais/riesgo-pais-dinamarca',
+    'EGY': 'https://www.cesce.es/es/w/riesgo-pais/riesgo-pais-egipto',
+    'FIN': 'https://www.cesce.es/es/w/riesgo-pais/riesgo-pais-finlandia',
+    'FRA': 'https://www.cesce.es/es/w/riesgo-pais/riesgo-pais-francia',
+    'DEU': 'https://www.cesce.es/es/w/riesgo-pais/riesgo-pais-alemania',
+    'GRC': 'https://www.cesce.es/es/w/riesgo-pais/riesgo-pais-grecia',
+    'IND': 'https://www.cesce.es/es/w/riesgo-pais/riesgo-pais-india',
+    'IDN': 'https://www.cesce.es/es/w/riesgo-pais/riesgo-pais-indonesia',
+    'ITA': 'https://www.cesce.es/es/w/riesgo-pais/riesgo-pais-italia',
+    'JPN': 'https://www.cesce.es/es/w/riesgo-pais/riesgo-pais-japon',
+    'KWT': 'https://www.cesce.es/es/w/riesgo-pais/riesgo-pais-kuwait',
+    'LNG': 'https://www.giignl.org/resources/',
+    'MYS': 'https://www.cesce.es/es/w/riesgo-pais/riesgo-pais-malasia',
+    'MRT': 'https://www.cesce.es/es/w/riesgo-pais/riesgo-pais-mauritania',
+    'MEX': 'https://www.cesce.es/es/w/riesgo-pais/riesgo-pais-mexico',
+    'MOZ': 'https://www.cesce.es/es/w/riesgo-pais/riesgo-pais-mozambique',
+    'NLD': 'https://www.cesce.es/es/w/riesgo-pais/riesgo-pais-paises-bajos',
+    'NGA': 'https://www.cesce.es/es/w/riesgo-pais/riesgo-pais-nigeria',
+    'NOR': 'https://www.cesce.es/es/w/riesgo-pais/riesgo-pais-noruega',
+    'OMN': 'https://www.cesce.es/es/w/riesgo-pais/riesgo-pais-oman',
+    'PAK': 'https://www.cesce.es/es/w/riesgo-pais/riesgo-pais-pakistan',
+    'PNG': 'https://www.cesce.es/es/w/riesgo-pais/riesgo-pais-papua-nueva-guinea',
+    'PER': 'https://www.cesce.es/es/w/riesgo-pais/riesgo-pais-peru',
+    'PHL': 'https://www.cesce.es/es/w/riesgo-pais/riesgo-pais-filipinas',
+    'POL': 'https://www.cesce.es/es/w/riesgo-pais/riesgo-pais-polonia',
+    'PRT': 'https://www.cesce.es/es/w/riesgo-pais/riesgo-pais-portugal',
+    'QAT': 'https://www.cesce.es/es/w/riesgo-pais/riesgo-pais-catar',
+    'RUS': 'https://www.cesce.es/es/w/riesgo-pais/riesgo-pais-rusia',
+    'SGP': 'https://www.cesce.es/es/w/riesgo-pais/riesgo-pais-singapur',
+    'KOR': 'https://www.cesce.es/es/w/riesgo-pais/riesgo-pais-corea-del-sur',
+    'ESP': 'https://www.cesce.es/es/w/riesgo-pais/riesgo-pais-espana',
+    'SWE': 'https://www.cesce.es/es/w/riesgo-pais/riesgo-pais-suecia',
+    'TWN': 'https://www.cesce.es/es/w/riesgo-pais/riesgo-pais-taiwan',
+    'TZA': 'https://www.cesce.es/es/w/riesgo-pais/riesgo-pais-tanzania',
+    'THA': 'https://www.cesce.es/es/w/riesgo-pais/riesgo-pais-tailandia',
+    'TTO': 'https://www.cesce.es/es/w/riesgo-pais/riesgo-pais-trinidad-y-tobago',
+    'TUR': 'https://www.cesce.es/es/w/riesgo-pais/riesgo-pais-turquia',
+    'ARE': 'https://www.cesce.es/es/w/riesgo-pais/riesgo-pais-emiratos-arabes-unidos',
+    'GBR': 'https://www.cesce.es/es/w/riesgo-pais/riesgo-pais-reino-unido',
+    'USA': 'https://www.cesce.es/es/w/riesgo-pais/riesgo-pais-estados-unidos',
+    'VNM': 'https://www.cesce.es/es/w/riesgo-pais/riesgo-pais-vietnam',
+  };
+  const updateLink = db.prepare('UPDATE Pais SET LinkFichaPais = ? WHERE CodigoPaisNormalizado = ? AND (LinkFichaPais IS NULL OR LinkFichaPais != ?)');
+  let updated = 0;
+  Object.entries(countryLinks).forEach(([code, link]) => {
+    const result = updateLink.run(link, code, link);
+    updated += result.changes;
+  });
+  if (updated > 0) console.log(`Migration: updated ${updated} country links to CESCE reports`);
 }
 
 // Generate next sequential code for a table
