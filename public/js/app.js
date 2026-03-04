@@ -849,7 +849,13 @@ async function openEditModal(tableName, id) {
 
 function buildForm(schema, data, options = {}) {
   const cols = schema.columns.filter(c => c !== 'id');
-  return `<div class="form-row">${cols.map(col => {
+  const isEditMode = schema.autoCode && data[schema.pk];
+  const editNotice = isEditMode ? `
+    <div style="grid-column:1/-1;background:#fff8e1;border:1px solid #f59e0b;border-radius:6px;padding:10px 14px;margin-bottom:4px;font-size:13px;color:#92400e;">
+      <i class="fas fa-info-circle"></i> <strong>Nombre</strong> y <strong>Código Normalizado</strong> no son editables.
+      Para cambiarlos, elimine este país y cree uno nuevo con los datos correctos.
+    </div>` : '';
+  return `<div class="form-row">${editNotice}${cols.map(col => {
     const isCodeField = schema.codeField && col === schema.codeField;
     const isPk = schema.pk === col && data[col];
     const isEntityField = col === 'CodigoEntidad' && schema.requiresEntity;
@@ -884,6 +890,15 @@ function buildForm(schema, data, options = {}) {
         </div>`;
     }
 
+    // autoCode: PK locked in edit mode (cannot be changed)
+    if (schema.autoCode && col === schema.pk && data[col]) {
+      return `
+        <div class="form-group">
+          <label>${schema.labels[col] || col}</label>
+          <input type="text" class="form-control" value="${esc(data[col])}" readonly style="background:#f0f0f0;font-weight:600;letter-spacing:1px;" title="El código no se puede modificar">
+        </div>`;
+    }
+
     // autoCode: PK auto-calculated from Nombre (create mode only)
     if (schema.autoCode && col === schema.pk && !data[col]) {
       return `
@@ -892,7 +907,16 @@ function buildForm(schema, data, options = {}) {
           <input type="text" class="form-control" name="${col}" id="autoCodeField" value="" readonly placeholder="Se calculará del nombre" style="background:#f0f0f0;font-weight:600;letter-spacing:1px;">
         </div>`;
     }
-    if (schema.autoCode && col === 'Nombre' && !data[col]) {
+    // autoCode: Nombre locked in edit mode
+    if (schema.autoCode && col === 'Nombre' && data[schema.pk]) {
+      return `
+        <div class="form-group">
+          <label>${schema.labels[col] || col}</label>
+          <input type="text" class="form-control" value="${esc(data[col] || '')}" readonly style="background:#f0f0f0;">
+        </div>`;
+    }
+    // autoCode: Nombre with auto-code trigger (create mode only)
+    if (schema.autoCode && col === 'Nombre' && !data[schema.pk]) {
       return `
         <div class="form-group">
           <label>${schema.labels[col] || col}</label>

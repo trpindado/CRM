@@ -391,6 +391,26 @@ function getPaisesList() {
   return db.prepare('SELECT CodigoPaisNormalizado, Nombre FROM Pais ORDER BY Nombre').all();
 }
 
+// Check dependencies before delete — returns error string or null if safe
+function checkDeleteDependencies(table, pkValue) {
+  const db = getDb();
+  if (table === 'Pais') {
+    const n = db.prepare('SELECT COUNT(*) as c FROM Entidades WHERE CodigoPaisNormalizado = ?').get(pkValue).c;
+    if (n > 0) return `No se puede eliminar el país porque tiene ${n} entidad${n > 1 ? 'es' : ''} asociada${n > 1 ? 's' : ''}. Elimínelas primero.`;
+  }
+  if (table === 'Entidades') {
+    const c = db.prepare('SELECT COUNT(*) as c FROM Contactos WHERE CodigoEntidad = ?').get(pkValue).c;
+    const o = db.prepare('SELECT COUNT(*) as c FROM Oportunidades WHERE CodigoEntidad = ?').get(pkValue).c;
+    const d = db.prepare('SELECT COUNT(*) as c FROM Documentos WHERE CodigoEntidad = ?').get(pkValue).c;
+    const parts = [];
+    if (c > 0) parts.push(`${c} contacto${c > 1 ? 's' : ''}`);
+    if (o > 0) parts.push(`${o} oportunidad${o > 1 ? 'es' : ''}`);
+    if (d > 0) parts.push(`${d} documento${d > 1 ? 's' : ''}`);
+    if (parts.length > 0) return `No se puede eliminar la entidad porque tiene asociados: ${parts.join(', ')}. Elimínelos primero.`;
+  }
+  return null;
+}
+
 // Check if entity exists
 function entityExists(codigoEntidad) {
   const db = getDb();
@@ -646,6 +666,7 @@ module.exports = {
   getEntidadesList,
   getPaisesList,
   entityExists,
+  checkDeleteDependencies,
   processAiQuery,
   getCrmContext,
 };

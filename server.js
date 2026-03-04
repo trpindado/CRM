@@ -171,6 +171,8 @@ Object.entries(tableConfig).forEach(([route, config]) => {
   // DELETE
   app.delete(`/api/${route}/:id`, requireAuth, (req, res) => {
     try {
+      const depError = db.checkDeleteDependencies(config.table, req.params.id);
+      if (depError) return res.status(409).json({ error: depError });
       db.remove(config.table, config.pk, req.params.id);
       res.json({ ok: true });
     } catch (e) {
