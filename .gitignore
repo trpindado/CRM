@@ -11,3 +11,6 @@ server.log
 .env
 # CSVs de exportación con datos reales
 Migracion/exports/
+crm.db
+crm.db-shm
+crm.db-wal
