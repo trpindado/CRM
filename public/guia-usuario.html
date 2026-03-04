@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Guía de Usuario — CRM GNL</title>
+  <style>
+    :root {
+      --blue: #003b6f;
+      --blue-mid: #005fa3;
+      --blue-light: #e8f1f8;
+      --orange: #e8630a;
+      --text: #1a1a2e;
+      --muted: #6b7a8d;
+      --border: #d0dce8;
+      --white: #ffffff;
+      --bg: #f5f8fc;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; }
+
+    /* ── Header ── */
+    header {
+      background: linear-gradient(135deg, var(--blue) 0%, var(--blue-mid) 100%);
+      color: var(--white); padding: 2.5rem 3rem; display: flex; align-items: center; gap: 1.5rem;
+    }
+    header .logo { font-size: 2.2rem; font-weight: 900; letter-spacing: -1px; }
+    header .logo span { color: var(--orange); }
+    header h1 { font-size: 1.4rem; font-weight: 300; opacity: .9; }
+    header .badge {
+      margin-left: auto; background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.3);
+      border-radius: 20px; padding: .3rem 1rem; font-size: .8rem; white-space: nowrap;
+    }
+
+    /* ── Layout ── */
+    .wrapper { display: flex; max-width: 1200px; margin: 0 auto; padding: 2rem 1.5rem; gap: 2rem; }
+
+    /* ── Sidebar nav ── */
+    nav {
+      width: 240px; flex-shrink: 0; position: sticky; top: 1.5rem; align-self: flex-start;
+      background: var(--white); border: 1px solid var(--border); border-radius: 10px;
+      padding: 1.2rem; box-shadow: 0 2px 8px rgba(0,0,0,.06);
+    }
+    nav h3 { font-size: .75rem; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: .8rem; }
+    nav ul { list-style: none; }
+    nav ul li a {
+      display: block; padding: .4rem .6rem; border-radius: 6px;
+      font-size: .88rem; color: var(--blue); text-decoration: none; transition: background .15s;
+    }
+    nav ul li a:hover { background: var(--blue-light); }
+    nav ul li.sub a { padding-left: 1.4rem; font-size: .83rem; color: var(--muted); }
+
+    /* ── Content ── */
+    main { flex: 1; min-width: 0; }
+    section { background: var(--white); border: 1px solid var(--border); border-radius: 10px;
+      padding: 2rem 2.5rem; margin-bottom: 1.8rem; box-shadow: 0 2px 8px rgba(0,0,0,.04); }
+
+    h2 { font-size: 1.35rem; color: var(--blue); border-bottom: 2px solid var(--orange);
+      padding-bottom: .5rem; margin-bottom: 1.3rem; }
+    h3 { font-size: 1.05rem; color: var(--blue-mid); margin: 1.4rem 0 .6rem; }
+    h4 { font-size: .92rem; color: var(--text); margin: 1rem 0 .4rem; font-weight: 600; }
+    p { margin-bottom: .8rem; }
+    ul, ol { padding-left: 1.4rem; margin-bottom: .8rem; }
+    li { margin-bottom: .3rem; }
+    strong { color: var(--blue); }
+
+    /* ── Callout boxes ── */
+    .tip, .warn, .info {
+      border-radius: 8px; padding: .9rem 1.2rem; margin: 1rem 0;
+      display: flex; gap: .7rem; align-items: flex-start; font-size: .9rem;
+    }
+    .tip  { background: #edfaf0; border-left: 4px solid #27ae60; }
+    .warn { background: #fff8e1; border-left: 4px solid #f39c12; }
+    .info { background: var(--blue-light); border-left: 4px solid var(--blue-mid); }
+    .tip .icon  { color: #27ae60; font-size: 1.1rem; }
+    .warn .icon { color: #f39c12; font-size: 1.1rem; }
+    .info .icon { color: var(--blue-mid); font-size: 1.1rem; }
+
+    /* ── Tables ── */
+    table { width: 100%; border-collapse: collapse; font-size: .88rem; margin: .8rem 0; }
+    th { background: var(--blue); color: var(--white); padding: .55rem .8rem; text-align: left; }
+    td { padding: .5rem .8rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+    tr:nth-child(even) td { background: var(--blue-light); }
+    td code { background: #eee; border-radius: 3px; padding: .1rem .35rem; font-size: .82rem; }
+
+    /* ── Inline code / kbd ── */
+    code { background: #eee; border-radius: 3px; padding: .15rem .4rem; font-size: .85rem; font-family: 'Cascadia Code', 'Fira Code', monospace; }
+    kbd { display: inline-block; background: #fff; border: 1px solid #ccc; border-radius: 4px;
+      padding: .1rem .4rem; font-size: .82rem; box-shadow: 0 1px 2px rgba(0,0,0,.2); }
+
+    /* ── Screenshot placeholder ── */
+    .screen {
+      background: #f0f4f8; border: 1px dashed var(--border); border-radius: 8px;
+      padding: 1rem; margin: .8rem 0; font-size: .82rem; color: var(--muted); text-align: center;
+    }
+
+    /* ── Steps ── */
+    .steps { counter-reset: step; list-style: none; padding: 0; }
+    .steps li { counter-increment: step; display: flex; gap: 1rem; margin-bottom: .9rem; align-items: flex-start; }
+    .steps li::before {
+      content: counter(step); background: var(--orange); color: #fff;
+      font-weight: 700; font-size: .8rem; min-width: 1.6rem; height: 1.6rem;
+      border-radius: 50%; display: grid; place-items: center; flex-shrink: 0; margin-top: .15rem;
+    }
+
+    /* ── Icon legend ── */
+    .icon-grid { display: flex; flex-wrap: wrap; gap: .8rem; margin: .6rem 0; }
+    .icon-item { background: var(--blue-light); border-radius: 8px; padding: .5rem .9rem;
+      font-size: .85rem; display: flex; align-items: center; gap: .5rem; }
+    .icon-item .i { font-size: 1rem; }
+
+    /* ── Back link ── */
+    .back { display: inline-block; margin: 1.5rem 1.5rem 0; color: var(--blue);
+      text-decoration: none; font-size: .9rem; }
+    .back:hover { text-decoration: underline; }
+
+    /* ── Print ── */
+    @media print {
+      nav, header .badge { display: none; }
+      .wrapper { padding: 0; }
+      section { box-shadow: none; border: none; page-break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">GNL<span>·</span>CRM</div>
+  <h1>Guía de Usuario</h1>
+  <div class="badge">Versión 2.0 — Marzo 2026</div>
+</header>
+
+<a class="back" href="/">← Volver a la aplicación</a>
+
+<div class="wrapper">
+
+  <!-- ── Sidebar ── -->
+  <nav>
+    <h3>Contenido</h3>
+    <ul>
+      <li><a href="#intro">1. Introducción</a></li>
+      <li><a href="#acceso">2. Acceso</a></li>
+      <li><a href="#dashboard">3. Dashboard</a></li>
+      <li><a href="#busqueda">4. Búsqueda global</a></li>
+      <li><a href="#paises">5. Países</a></li>
+      <li class="sub"><a href="#paises-iconos">· Iconos de enlace</a></li>
+      <li class="sub"><a href="#paises-alta">· Alta con código auto</a></li>
+      <li><a href="#entidades">6. Entidades</a></li>
+      <li class="sub"><a href="#entidades-pais">· Selector de país</a></li>
+      <li><a href="#contactos">7. Contactos</a></li>
+      <li><a href="#oportunidades">8. Oportunidades</a></li>
+      <li><a href="#documentos">9. Documentos</a></li>
+      <li><a href="#ai">10. Asistente IA</a></li>
+      <li><a href="#import">11. Importar Excel</a></li>
+      <li><a href="#usuarios">12. Gestión de usuarios</a></li>
+      <li><a href="#perfil">13. Mi perfil</a></li>
+      <li><a href="#roles">14. Roles y permisos</a></li>
+    </ul>
+  </nav>
+
+  <!-- ── Main ── -->
+  <main>
+
+    <!-- 1. Intro -->
+    <section id="intro">
+      <h2>1. Introducción</h2>
+      <p>El <strong>CRM GNL</strong> es la herramienta de gestión comercial de Naturgy para el negocio de Gas Natural Licuado. Centraliza la información de contrapartes, contactos, oportunidades de negocio y documentación legal en una única plataforma web.</p>
+      <h3>Módulos principales</h3>
+      <ul>
+        <li><strong>Dashboard</strong> — KPIs en tiempo real y mapa mundial de presencia</li>
+        <li><strong>Países</strong> — Ficha por país con enlace a informe de riesgo CESCE</li>
+        <li><strong>Entidades</strong> — Contrapartes comerciales con datos identificativos</li>
+        <li><strong>Contactos</strong> — Personas de contacto vinculadas a entidades</li>
+        <li><strong>Oportunidades</strong> — Pipeline comercial con tracking de estado</li>
+        <li><strong>Documentos</strong> — Estado de documentación legal (KYC, NDA, MSPA)</li>
+        <li><strong>Asistente IA</strong> — Consultas en lenguaje natural sobre la BD</li>
+      </ul>
+    </section>
+
+    <!-- 2. Acceso -->
+    <section id="acceso">
+      <h2>2. Acceso al sistema</h2>
+      <h3>Inicio de sesión</h3>
+      <ol class="steps">
+        <li>Abre el navegador y accede a la URL de la aplicación (p.ej. <code>http://localhost:3000</code> en local o <code>http://pruebascrm.ddns.me</code> en el servidor de pruebas).</li>
+        <li>Introduce tu <strong>nombre de usuario</strong> y <strong>contraseña</strong>.</li>
+        <li>Pulsa <kbd>Intro</kbd> o haz clic en <strong>Entrar</strong>.</li>
+      </ol>
+      <div class="tip">
+        <span class="icon">✔</span>
+        <span>La sesión dura <strong>8 horas</strong>. Si el servidor se reinicia, la sesión expira y deberás volver a hacer login aunque el navegador muestre la pantalla de la app.</span>
+      </div>
+      <h3>Cerrar sesión</h3>
+      <p>Haz clic en el icono de usuario (esquina superior derecha) y selecciona <strong>Cerrar sesión</strong>.</p>
+    </section>
+
+    <!-- 3. Dashboard -->
+    <section id="dashboard">
+      <h2>3. Dashboard</h2>
+      <p>El dashboard es la pantalla principal tras el login. Muestra un resumen ejecutivo del estado del CRM.</p>
+      <h3>Tarjetas KPI</h3>
+      <table>
+        <thead><tr><th>Indicador</th><th>Descripción</th></tr></thead>
+        <tbody>
+          <tr><td>Países</td><td>Número de países registrados en la BD</td></tr>
+          <tr><td>Entidades</td><td>Total de contrapartes activas</td></tr>
+          <tr><td>Contactos</td><td>Personas de contacto registradas</td></tr>
+          <tr><td>Oportunidades</td><td>Oportunidades en pipeline</td></tr>
+          <tr><td>Documentos</td><td>Registros de documentación legal</td></tr>
+        </tbody>
+      </table>
+      <h3>Mapa mundial</h3>
+      <p>El mapa interactivo (Leaflet, OpenStreetMap) muestra un marcador por cada país con entidades registradas. Al hacer clic en un marcador aparece el nombre del país y el número de entidades asociadas.</p>
+      <div class="info">
+        <span class="icon">ℹ</span>
+        <span>El territorio virtual <strong>LNG</strong> no aparece en el mapa por carecer de coordenadas geográficas.</span>
+      </div>
+    </section>
+
+    <!-- 4. Búsqueda -->
+    <section id="busqueda">
+      <h2>4. Búsqueda global</h2>
+      <p>La barra de búsqueda en la cabecera permite localizar cualquier entidad por nombre, código, país o tipo de forma instantánea.</p>
+      <ol class="steps">
+        <li>Haz clic en el campo de búsqueda o pulsa el icono de lupa.</li>
+        <li>Escribe al menos 2 caracteres del término a buscar.</li>
+        <li>Los resultados aparecen en tiempo real. Haz clic en un resultado para abrir la ficha de entidad.</li>
+      </ol>
+      <p>La ficha de entidad muestra todos los datos de la entidad junto con sus contactos, oportunidades y documentos asociados en una sola vista.</p>
+    </section>
+
+    <!-- 5. Países -->
+    <section id="paises">
+      <h2>5. Países</h2>
+      <p>La tabla de Países registra cada país o territorio relevante para el negocio GNL. Sirve también como referencia para clasificar entidades.</p>
+
+      <h3>Campos disponibles</h3>
+      <table>
+        <thead><tr><th>Campo</th><th>Descripción</th></tr></thead>
+        <tbody>
+          <tr><td><code>CodigoPaisNormalizado</code></td><td>Código ISO 3166-1 alpha-3 (PK). Se calcula automáticamente al escribir el nombre del país.</td></tr>
+          <tr><td><code>Nombre</code></td><td>Nombre del país en español</td></tr>
+          <tr><td><code>Region</code></td><td>Región geográfica o de negocio</td></tr>
+          <tr><td><code>ReferenciaIndice</code></td><td>Referencia interna de índice</td></tr>
+          <tr><td><code>LinkFichaPais</code></td><td>Enlace al informe de riesgo país (CESCE). Se muestra como icono 🌐 clicable.</td></tr>
+          <tr><td><code>PersonaReferenciaOportun</code></td><td>Persona de referencia para oportunidades en ese país</td></tr>
+          <tr><td><code>Comentarios</code></td><td>Notas libres</td></tr>
+        </tbody>
+      </table>
+
+      <h3 id="paises-iconos">Iconos de enlace en la tabla</h3>
+      <p>El campo <code>LinkFichaPais</code>, cuando tiene valor, se muestra como un icono 🌐 (globo) en la tabla. Al hacer clic se abre la ficha de riesgo país de <strong>CESCE</strong> en una nueva pestaña.</p>
+      <div class="tip">
+        <span class="icon">✔</span>
+        <span>Todos los países principales del mundo GNL llevan precargado su enlace CESCE correspondiente.</span>
+      </div>
+
+      <h3 id="paises-alta">Alta de un nuevo país — código automático</h3>
+      <p>Al pulsar <strong>+ Nuevo País</strong>, el formulario presenta primero el campo <strong>Nombre</strong>. Conforme escribes el nombre en español, el campo <strong>Código</strong> se rellena automáticamente con el código ISO 3166-1 alpha-3 correspondiente.</p>
+      <ol class="steps">
+        <li>Haz clic en <strong>+ Nuevo País</strong>.</li>
+        <li>Escribe el nombre del país en español (p.ej. <em>Arabia Saudí</em>).</li>
+        <li>El código (<em>SAU</em>) aparece automáticamente en el campo de código.</li>
+        <li>Completa el resto de campos y pulsa <strong>Guardar</strong>.</li>
+      </ol>
+      <div class="warn">
+        <span class="icon">⚠</span>
+        <span>Si el nombre introducido no está en la tabla de referencia, el código quedará en blanco y deberás introducirlo manualmente. Verifica el código ISO 3166-1 alpha-3 antes de guardar.</span>
+      </div>
+    </section>
+
+    <!-- 6. Entidades -->
+    <section id="entidades">
+      <h2>6. Entidades</h2>
+      <p>Las entidades representan las contrapartes comerciales: empresas compradoras, vendedoras, traders, etc.</p>
+      <h3>Campos principales</h3>
+      <table>
+        <thead><tr><th>Campo</th><th>Descripción</th></tr></thead>
+        <tbody>
+          <tr><td><code>CodigoEntidad</code></td><td>Identificador único (PK). Se genera automáticamente si se deja en blanco.</td></tr>
+          <tr><td><code>Compania</code></td><td>Nombre de la empresa <em>(obligatorio)</em></td></tr>
+          <tr><td><code>Region</code></td><td>Región de negocio</td></tr>
+          <tr><td><code>Tipo</code></td><td>Buyer / Seller / Trader / Shipper / otros</td></tr>
+          <tr><td><code>CodigoPaisNormalizado</code></td><td>País asociado (selector de la lista de países registrados)</td></tr>
+          <tr><td><code>FiscalCode</code></td><td>CIF / NIF u otro código fiscal</td></tr>
+          <tr><td><code>LEI</code></td><td>Legal Entity Identifier (20 caracteres)</td></tr>
+          <tr><td><code>Ticker</code></td><td>Símbolo bursátil</td></tr>
+          <tr><td><code>DunsNumber</code></td><td>Número DUNS</td></tr>
+          <tr><td><code>Direccion</code></td><td>Dirección postal</td></tr>
+          <tr><td><code>Comentarios</code></td><td>Notas libres</td></tr>
+        </tbody>
+      </table>
+
+      <h3 id="entidades-pais">Selector de país</h3>
+      <p>El campo <strong>País</strong> en el formulario de creación/edición de entidades es un <strong>desplegable</strong> que lista todos los países registrados en la BD, ordenados alfabéticamente. Esto garantiza la integridad referencial: solo se pueden asignar países existentes.</p>
+      <div class="info">
+        <span class="icon">ℹ</span>
+        <span>Si necesitas asignar un país que no aparece en el desplegable, primero créalo en el módulo <strong>Países</strong>.</span>
+      </div>
+    </section>
+
+    <!-- 7. Contactos -->
+    <section id="contactos">
+      <h2>7. Contactos</h2>
+      <p>Los contactos son personas vinculadas a una entidad. Cada contacto requiere que la entidad ya exista en el sistema.</p>
+      <h3>Campos principales</h3>
+      <table>
+        <thead><tr><th>Campo</th><th>Descripción</th></tr></thead>
+        <tbody>
+          <tr><td><code>CodigoEntidad</code></td><td>Entidad a la que pertenece el contacto <em>(obligatorio)</em></td></tr>
+          <tr><td><code>Nombre</code></td><td>Nombre completo</td></tr>
+          <tr><td><code>Cargo</code></td><td>Posición / título profesional</td></tr>
+          <tr><td><code>Email</code></td><td>Correo electrónico</td></tr>
+          <tr><td><code>Telefono1</code> / <code>Telefono2</code></td><td>Teléfonos de contacto</td></tr>
+          <tr><td><code>Via</code></td><td>Canal preferido (Email, LinkedIn, Teléfono…)</td></tr>
+          <tr><td><code>FechaUltimoContacto</code></td><td>Fecha del último contacto registrado</td></tr>
+          <tr><td><code>DemorarContactoAfecha</code></td><td>Fecha de próximo contacto planificado</td></tr>
+          <tr><td><code>ProbabilidadExito</code></td><td>Estimación cualitativa de éxito</td></tr>
+          <tr><td><code>Linkedin</code></td><td>URL del perfil LinkedIn. Se muestra como icono <strong>in</strong> clicable en la tabla.</td></tr>
+          <tr><td><code>Comentarios</code></td><td>Notas libres</td></tr>
+        </tbody>
+      </table>
+      <h3>Icono LinkedIn</h3>
+      <p>Cuando un contacto tiene el campo <code>Linkedin</code> relleno, la tabla muestra un icono azul de LinkedIn. Al hacer clic se abre el perfil en una nueva pestaña.</p>
+    </section>
+
+    <!-- 8. Oportunidades -->
+    <section id="oportunidades">
+      <h2>8. Oportunidades</h2>
+      <p>Las oportunidades representan cada negociación o deal en curso con una contraparte.</p>
+      <h3>Campos principales</h3>
+      <table>
+        <thead><tr><th>Campo</th><th>Descripción</th></tr></thead>
+        <tbody>
+          <tr><td><code>CodigoEntidad</code></td><td>Entidad vinculada <em>(obligatorio)</em></td></tr>
+          <tr><td><code>Contraparte</code></td><td>Nombre de la contraparte en la oportunidad</td></tr>
+          <tr><td><code>OwnerAccount</code></td><td>Responsable interno de la oportunidad</td></tr>
+          <tr><td><code>Entrega</code></td><td>Punto de entrega del GNL</td></tr>
+          <tr><td><code>Periodo</code></td><td>Periodo de suministro</td></tr>
+          <tr><td><code>Volumen</code></td><td>Volumen contratado o estimado</td></tr>
+          <tr><td><code>Precio</code></td><td>Precio o indexación de precio</td></tr>
+          <tr><td><code>SpecsContrapartePCS</code></td><td>Especificaciones técnicas de la contraparte</td></tr>
+          <tr><td><code>ProximosPasosNTGY</code></td><td>Próximos pasos por parte de Naturgy</td></tr>
+          <tr><td><code>ProximosPasosContraparte</code></td><td>Próximos pasos por parte de la contraparte</td></tr>
+          <tr><td><code>Timing</code></td><td>Urgencia / calendario del deal</td></tr>
+          <tr><td><code>Origen</code></td><td>Procedencia de la oportunidad</td></tr>
+          <tr><td><code>Comentarios</code></td><td>Notas libres</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- 9. Documentos -->
+    <section id="documentos">
+      <h2>9. Documentos</h2>
+      <p>El módulo de Documentos registra el estado de los acuerdos legales requeridos para operar con cada entidad: <strong>KYC</strong>, <strong>NDA</strong> y <strong>MSPA</strong>.</p>
+      <h3>Campos y funcionamiento</h3>
+      <table>
+        <thead><tr><th>Campo</th><th>Descripción</th></tr></thead>
+        <tbody>
+          <tr><td><code>CodigoEntidad</code></td><td>Entidad a la que pertenece el registro <em>(obligatorio)</em></td></tr>
+          <tr><td><code>KYC_S_N</code></td><td>¿KYC completado? (S/N u otro valor)</td></tr>
+          <tr><td><code>KYC_link</code></td><td>Enlace al documento KYC. Se muestra como icono 📎 junto al estado.</td></tr>
+          <tr><td><code>NDA_S_N</code></td><td>¿NDA firmado? (S/N u otro valor)</td></tr>
+          <tr><td><code>FechaExpiracionNDA</code></td><td>Fecha de vencimiento del NDA</td></tr>
+          <tr><td><code>NDALink</code></td><td>Enlace al documento NDA. Se muestra como icono 📎 junto al estado.</td></tr>
+          <tr><td><code>MSPASN</code></td><td>¿MSPA en vigor? (S/N u otro valor)</td></tr>
+          <tr><td><code>LinkMSPA</code></td><td>Enlace al documento MSPA. Se muestra como icono 📎 junto al estado.</td></tr>
+          <tr><td><code>Comentarios</code></td><td>Notas libres</td></tr>
+        </tbody>
+      </table>
+      <h3>Iconos de enlace a documentos</h3>
+      <p>Los campos de enlace (<code>KYC_link</code>, <code>NDALink</code>, <code>LinkMSPA</code>) se muestran en la tabla como un icono de clip 📎 al lado del estado correspondiente. Al hacer clic se abre el documento en una nueva pestaña.</p>
+      <div class="tip">
+        <span class="icon">✔</span>
+        <span>Puedes usar enlaces de SharePoint, OneDrive, Google Drive o cualquier URL accesible para almacenar los documentos.</span>
+      </div>
+    </section>
+
+    <!-- 10. IA -->
+    <section id="ai">
+      <h2>10. Asistente IA</h2>
+      <p>El panel lateral derecho alberga un asistente conversacional que puede responder preguntas sobre los datos del CRM y el mercado LNG en lenguaje natural.</p>
+      <h3>Modos de funcionamiento</h3>
+      <table>
+        <thead><tr><th>Modo</th><th>Tecnología</th><th>Cuándo usar</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Básico</strong></td><td>Motor local (sin IA)</td><td>Consultas simples de datos sin conexión a internet</td></tr>
+          <tr><td><strong>IA (OpenAI)</strong></td><td>GPT-4o-mini</td><td>Análisis, recomendaciones, preguntas complejas de negocio</td></tr>
+        </tbody>
+      </table>
+      <h3>Activar el modo IA</h3>
+      <ol class="steps">
+        <li>Localiza el <strong>toggle Básico / IA</strong> en la cabecera del panel de chat.</li>
+        <li>Actívalo para pasar al modo OpenAI. La preferencia se guarda en el navegador.</li>
+        <li>Escribe tu consulta y pulsa <kbd>Intro</kbd> o el botón enviar.</li>
+      </ol>
+      <div class="info">
+        <span class="icon">ℹ</span>
+        <span>El modo IA requiere que la variable <code>OPENAI_API_KEY</code> esté configurada en el servidor. Si no está disponible, el sistema aplica un fallback automático al modo básico.</span>
+      </div>
+      <h3>Ejemplos de consultas</h3>
+      <ul>
+        <li>«¿Cuántas oportunidades tenemos con contrapartes asiáticas?»</li>
+        <li>«Resume el estado de la relación con <em>[Entidad X]</em>»</li>
+        <li>«¿Qué entidades no tienen NDA firmado?»</li>
+        <li>«Analiza el pipeline por región y dame recomendaciones»</li>
+        <li>«¿Cuál es la situación actual del mercado spot de GNL?»</li>
+      </ul>
+    </section>
+
+    <!-- 11. Importar Excel -->
+    <section id="import">
+      <h2>11. Importar desde Excel</h2>
+      <p>El sistema permite cargar datos masivamente desde un fichero Excel (.xlsx) con hojas predefinidas.</p>
+      <h3>Formato requerido</h3>
+      <p>El fichero debe contener hojas con los siguientes nombres exactos (se respeta el orden de importación para integridad referencial):</p>
+      <ol>
+        <li><code>Pais</code></li>
+        <li><code>Entidades</code></li>
+        <li><code>Contactos</code></li>
+        <li><code>Oportunidades</code></li>
+        <li><code>Documentos</code></li>
+      </ol>
+      <p>Los encabezados de columna deben coincidir exactamente con los nombres de campo de la BD (ver módulo <a href="diseno-bbdd.html">Diseño BBDD</a>).</p>
+      <h3>Pasos para importar</h3>
+      <ol class="steps">
+        <li>Ve a <strong>Importar / Exportar</strong> en el menú lateral.</li>
+        <li>Haz clic en <strong>Seleccionar fichero</strong> y elige tu .xlsx.</li>
+        <li>Pulsa <strong>Importar</strong>. El sistema procesa cada hoja en orden.</li>
+        <li>Revisa el resumen de resultados (registros importados por tabla).</li>
+      </ol>
+      <div class="warn">
+        <span class="icon">⚠</span>
+        <span>La importación es <strong>aditiva</strong>: añade registros pero no borra los existentes. Si un registro con la misma PK ya existe, puede generar un error de duplicado. Verifica los datos antes de importar.</span>
+      </div>
+    </section>
+
+    <!-- 12. Usuarios -->
+    <section id="usuarios">
+      <h2>12. Gestión de usuarios <small style="color:var(--orange);font-size:.8em;">(solo administradores)</small></h2>
+      <p>Los usuarios con rol <strong>admin</strong> pueden gestionar las cuentas del sistema desde el menú <strong>Usuarios</strong>.</p>
+      <h3>Operaciones disponibles</h3>
+      <ul>
+        <li><strong>Ver lista</strong> de todos los usuarios (id, nombre, usuario, rol)</li>
+        <li><strong>Crear</strong> nuevo usuario con nombre, usuario, contraseña y rol</li>
+        <li><strong>Editar</strong> cualquier usuario (incluido cambio de contraseña)</li>
+        <li><strong>Eliminar</strong> un usuario</li>
+      </ul>
+      <h3>Roles</h3>
+      <table>
+        <thead><tr><th>Rol</th><th>Acceso</th></tr></thead>
+        <tbody>
+          <tr><td><code>admin</code></td><td>Acceso completo incluyendo gestión de usuarios</td></tr>
+          <tr><td><code>comercial</code></td><td>Acceso a todos los módulos de datos; sin gestión de usuarios</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- 13. Mi perfil -->
+    <section id="perfil">
+      <h2>13. Mi perfil</h2>
+      <p>Cualquier usuario autenticado puede acceder a su perfil para <strong>cambiar su contraseña</strong>.</p>
+      <ol class="steps">
+        <li>Haz clic en el icono de usuario (esquina superior derecha).</li>
+        <li>Selecciona <strong>Mi perfil</strong>.</li>
+        <li>Introduce la nueva contraseña y confirma.</li>
+        <li>Pulsa <strong>Guardar</strong>. La contraseña cambia inmediatamente.</li>
+      </ol>
+      <div class="tip">
+        <span class="icon">✔</span>
+        <span>Cambia tu contraseña la primera vez que accedas al sistema si usas las credenciales por defecto.</span>
+      </div>
+    </section>
+
+    <!-- 14. Roles -->
+    <section id="roles">
+      <h2>14. Resumen de permisos por rol</h2>
+      <table>
+        <thead>
+          <tr><th>Funcionalidad</th><th>comercial</th><th>admin</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Dashboard</td><td>✔</td><td>✔</td></tr>
+          <tr><td>Búsqueda global</td><td>✔</td><td>✔</td></tr>
+          <tr><td>Ver / Crear / Editar / Borrar — Países</td><td>✔</td><td>✔</td></tr>
+          <tr><td>Ver / Crear / Editar / Borrar — Entidades</td><td>✔</td><td>✔</td></tr>
+          <tr><td>Ver / Crear / Editar / Borrar — Contactos</td><td>✔</td><td>✔</td></tr>
+          <tr><td>Ver / Crear / Editar / Borrar — Oportunidades</td><td>✔</td><td>✔</td></tr>
+          <tr><td>Ver / Crear / Editar / Borrar — Documentos</td><td>✔</td><td>✔</td></tr>
+          <tr><td>Asistente IA</td><td>✔</td><td>✔</td></tr>
+          <tr><td>Importar Excel</td><td>✔</td><td>✔</td></tr>
+          <tr><td>Cambiar propia contraseña</td><td>✔</td><td>✔</td></tr>
+          <tr><td>Gestión de usuarios</td><td>✗</td><td>✔</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+  </main>
+</div>
+
+<footer style="text-align:center;padding:2rem;color:var(--muted);font-size:.82rem;border-top:1px solid var(--border);margin-top:1rem;">
+  CRM GNL — Naturgy &nbsp;|&nbsp; Documento interno &nbsp;|&nbsp; Versión 2.0 — Marzo 2026
+</footer>
+
+</body>
+</html>

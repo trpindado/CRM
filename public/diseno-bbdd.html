@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Diseño de Base de Datos — CRM GNL</title>
+  <style>
+    :root {
+      --blue: #003b6f;
+      --blue-mid: #005fa3;
+      --blue-light: #e8f1f8;
+      --orange: #e8630a;
+      --green: #1a7a4a;
+      --green-light: #edfaf0;
+      --text: #1a1a2e;
+      --muted: #6b7a8d;
+      --border: #d0dce8;
+      --white: #ffffff;
+      --bg: #f5f8fc;
+      --pk-bg: #fff3e0;
+      --fk-bg: #e3f2fd;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; }
+
+    header {
+      background: linear-gradient(135deg, var(--blue) 0%, var(--blue-mid) 100%);
+      color: var(--white); padding: 2.5rem 3rem; display: flex; align-items: center; gap: 1.5rem;
+    }
+    header .logo { font-size: 2.2rem; font-weight: 900; letter-spacing: -1px; }
+    header .logo span { color: var(--orange); }
+    header h1 { font-size: 1.4rem; font-weight: 300; opacity: .9; }
+    header .badge {
+      margin-left: auto; background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.3);
+      border-radius: 20px; padding: .3rem 1rem; font-size: .8rem; white-space: nowrap;
+    }
+
+    .wrapper { display: flex; max-width: 1300px; margin: 0 auto; padding: 2rem 1.5rem; gap: 2rem; }
+
+    nav {
+      width: 230px; flex-shrink: 0; position: sticky; top: 1.5rem; align-self: flex-start;
+      background: var(--white); border: 1px solid var(--border); border-radius: 10px;
+      padding: 1.2rem; box-shadow: 0 2px 8px rgba(0,0,0,.06);
+    }
+    nav h3 { font-size: .75rem; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: .8rem; }
+    nav ul { list-style: none; }
+    nav ul li a { display: block; padding: .4rem .6rem; border-radius: 6px; font-size: .88rem; color: var(--blue); text-decoration: none; transition: background .15s; }
+    nav ul li a:hover { background: var(--blue-light); }
+    nav ul li.sub a { padding-left: 1.4rem; font-size: .83rem; color: var(--muted); }
+
+    main { flex: 1; min-width: 0; }
+    section { background: var(--white); border: 1px solid var(--border); border-radius: 10px;
+      padding: 2rem 2.5rem; margin-bottom: 1.8rem; box-shadow: 0 2px 8px rgba(0,0,0,.04); }
+
+    h2 { font-size: 1.35rem; color: var(--blue); border-bottom: 2px solid var(--orange);
+      padding-bottom: .5rem; margin-bottom: 1.3rem; }
+    h3 { font-size: 1.05rem; color: var(--blue-mid); margin: 1.4rem 0 .6rem; }
+    h4 { font-size: .92rem; color: var(--text); margin: 1rem 0 .4rem; font-weight: 600; }
+    p { margin-bottom: .8rem; }
+    ul, ol { padding-left: 1.4rem; margin-bottom: .8rem; }
+    li { margin-bottom: .3rem; }
+    strong { color: var(--blue); }
+
+    .tip, .info { border-radius: 8px; padding: .9rem 1.2rem; margin: 1rem 0; display: flex; gap: .7rem; align-items: flex-start; font-size: .9rem; }
+    .tip  { background: var(--green-light); border-left: 4px solid var(--green); }
+    .info { background: var(--blue-light); border-left: 4px solid var(--blue-mid); }
+    .tip .icon  { color: var(--green); }
+    .info .icon { color: var(--blue-mid); }
+
+    /* Field tables */
+    table.fields { width: 100%; border-collapse: collapse; font-size: .85rem; margin: .8rem 0; }
+    table.fields th { background: var(--blue); color: var(--white); padding: .5rem .8rem; text-align: left; }
+    table.fields td { padding: .45rem .8rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+    table.fields tr:nth-child(even) td { background: #f8fbff; }
+    table.fields td.field { font-family: 'Cascadia Code', 'Fira Code', monospace; font-size: .82rem; }
+    table.fields td.type  { color: var(--muted); white-space: nowrap; }
+    .pk  { background: var(--pk-bg) !important; font-weight: 700; }
+    .fk  { background: var(--fk-bg) !important; }
+    .badge-pk  { display: inline-block; background: var(--orange); color: #fff; border-radius: 3px; padding: .05rem .35rem; font-size: .7rem; font-weight: 700; margin-left: .3rem; }
+    .badge-fk  { display: inline-block; background: var(--blue-mid); color: #fff; border-radius: 3px; padding: .05rem .35rem; font-size: .7rem; font-weight: 700; margin-left: .3rem; }
+    .badge-ai  { display: inline-block; background: #7b68ee; color: #fff; border-radius: 3px; padding: .05rem .35rem; font-size: .7rem; font-weight: 700; margin-left: .3rem; }
+    .badge-nn  { display: inline-block; background: #c0392b; color: #fff; border-radius: 3px; padding: .05rem .35rem; font-size: .7rem; font-weight: 700; margin-left: .3rem; }
+
+    /* ERD ASCII */
+    .erd {
+      background: #1e1e2e; color: #cdd6f4; font-family: 'Cascadia Code', 'Fira Code', monospace;
+      font-size: .82rem; border-radius: 10px; padding: 1.5rem 2rem; overflow-x: auto;
+      margin: 1rem 0; line-height: 1.9;
+    }
+    .erd .t  { color: #89b4fa; font-weight: 700; }
+    .erd .pk { color: #fab387; }
+    .erd .fk { color: #89dceb; }
+    .erd .arrow { color: #a6e3a1; }
+
+    code { background: #eee; border-radius: 3px; padding: .15rem .4rem; font-size: .85rem; font-family: 'Cascadia Code', 'Fira Code', monospace; }
+
+    .back { display: inline-block; margin: 1.5rem 1.5rem 0; color: var(--blue); text-decoration: none; font-size: .9rem; }
+    .back:hover { text-decoration: underline; }
+
+    .legend { display: flex; gap: 1rem; flex-wrap: wrap; margin: .6rem 0 1rem; font-size: .82rem; }
+    .legend span { display: flex; align-items: center; gap: .4rem; }
+
+    @media print {
+      nav, header .badge { display: none; }
+      .wrapper { padding: 0; }
+      section { box-shadow: none; border: none; page-break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">GNL<span>·</span>CRM</div>
+  <h1>Diseño de Base de Datos</h1>
+  <div class="badge">Versión 2.0 — Marzo 2026</div>
+</header>
+
+<a class="back" href="/">← Volver a la aplicación</a>
+
+<div class="wrapper">
+
+  <nav>
+    <h3>Contenido</h3>
+    <ul>
+      <li><a href="#overview">1. Visión general</a></li>
+      <li><a href="#erd">2. Diagrama ERD</a></li>
+      <li><a href="#pais">3. Tabla Pais</a></li>
+      <li><a href="#entidades">4. Tabla Entidades</a></li>
+      <li><a href="#contactos">5. Tabla Contactos</a></li>
+      <li><a href="#oportunidades">6. Tabla Oportunidades</a></li>
+      <li><a href="#documentos">7. Tabla Documentos</a></li>
+      <li><a href="#usuarios">8. Tabla Usuarios</a></li>
+      <li><a href="#relaciones">9. Relaciones FK</a></li>
+      <li><a href="#pragmas">10. Configuración SQLite</a></li>
+      <li><a href="#migraciones">11. Migraciones</a></li>
+      <li><a href="#codigos">12. Codificación</a></li>
+    </ul>
+  </nav>
+
+  <main>
+
+    <!-- 1. Overview -->
+    <section id="overview">
+      <h2>1. Visión general</h2>
+      <p>El CRM GNL utiliza <strong>SQLite</strong> (better-sqlite3) como motor de base de datos embebido. El fichero de base de datos es <code>crm.db</code> en la raíz del proyecto.</p>
+      <table class="fields">
+        <thead><tr><th>Característica</th><th>Valor</th></tr></thead>
+        <tbody>
+          <tr><td>Motor</td><td>SQLite 3 (via better-sqlite3)</td></tr>
+          <tr><td>Fichero</td><td><code>crm.db</code> (raíz del proyecto)</td></tr>
+          <tr><td>Journal mode</td><td>WAL (Write-Ahead Logging)</td></tr>
+          <tr><td>Foreign keys</td><td>ON (<code>PRAGMA foreign_keys = ON</code>)</td></tr>
+          <tr><td>Número de tablas</td><td>6 (5 de negocio + Usuarios)</td></tr>
+          <tr><td>Archivos auxiliares</td><td><code>crm.db-wal</code>, <code>crm.db-shm</code></td></tr>
+        </tbody>
+      </table>
+      <div class="info">
+        <span class="icon">ℹ</span>
+        <span>Los ficheros <code>crm.db-wal</code> y <code>crm.db-shm</code> son archivos de WAL activos. Al copiar la BD entre servidores, deben copiarse los tres ficheros o bien detener el servidor antes de copiar.</span>
+      </div>
+    </section>
+
+    <!-- 2. ERD -->
+    <section id="erd">
+      <h2>2. Diagrama ERD</h2>
+      <div class="erd">
+<span class="t">┌─────────────────┐</span>
+<span class="t">│      Pais       │</span>
+<span class="t">├─────────────────┤</span>
+<span class="pk">│ CodigoPaisNorm. │ ◄─ PK (TEXT)</span>
+│ Nombre          │
+│ Region          │
+│ ReferenciaIndice│
+│ LinkFichaPais   │
+│ PersonaRef...   │
+│ Comentarios     │
+<span class="t">└────────┬────────┘</span>
+         │ 1
+         │
+         │ N
+<span class="t">┌────────▼────────────────────────────────────┐</span>
+<span class="t">│                  Entidades                  │</span>
+<span class="t">├─────────────────────────────────────────────┤</span>
+<span class="pk">│ CodigoEntidad       │ ◄─ PK (TEXT)</span>
+│ Compania            │ NOT NULL
+<span class="fk">│ CodigoPaisNorm.     │ → FK → Pais</span>
+│ Region, Tipo        │
+│ FiscalCode, LEI     │
+│ Ticker, DunsNumber  │
+│ Direccion           │
+│ Comentarios         │
+<span class="t">└──┬────────┬──────┬──┘</span>
+   │        │      │
+   │1      │1     │1
+   │        │      │
+   │N      │N     │N
+<span class="t">┌──▼──┐  ┌──▼────┐  ┌──▼──────┐</span>
+<span class="t">│Cont.│  │Opor.  │  │Documen. │</span>
+<span class="t">├─────┤  ├───────┤  ├─────────┤</span>
+<span class="pk">│ id  │  │ id    │  │ id      │</span> (PK autoincrement)
+<span class="fk">│ Cod.│  │ Cod.  │  │ Cod.    │</span> → FK → Entidades
+│ ... │  │ ...   │  │ KYC_S_N │
+│     │  │       │  │ KYC_link│
+│     │  │       │  │ NDA_S_N │
+│     │  │       │  │ NDALink │
+│     │  │       │  │ MSPASN  │
+│     │  │       │  │ LinkMSPA│
+<span class="t">└─────┘  └───────┘  └─────────┘</span>
+
+<span class="t">┌──────────────┐</span>
+<span class="t">│   Usuarios   │</span>   (tabla independiente)
+<span class="t">├──────────────┤</span>
+<span class="pk">│ id           │</span> (PK autoincrement)
+│ username     │ UNIQUE
+│ password     │
+│ nombre       │
+│ rol          │
+<span class="t">└──────────────┘</span>
+      </div>
+      <div class="legend">
+        <span><span class="badge-pk">PK</span> Clave primaria</span>
+        <span><span class="badge-fk">FK</span> Clave foránea</span>
+        <span><span class="badge-ai">AI</span> Autoincrement</span>
+        <span><span class="badge-nn">NN</span> Not Null</span>
+      </div>
+    </section>
+
+    <!-- 3. Pais -->
+    <section id="pais">
+      <h2>3. Tabla <code>Pais</code></h2>
+      <p>Catálogo de países y territorios relevantes para el negocio GNL. Es la tabla padre de <code>Entidades</code>.</p>
+      <table class="fields">
+        <thead><tr><th>Campo</th><th>Tipo</th><th>Restricciones</th><th>Descripción</th></tr></thead>
+        <tbody>
+          <tr class="pk">
+            <td class="field">CodigoPaisNormalizado <span class="badge-pk">PK</span></td>
+            <td class="type">TEXT</td>
+            <td>PRIMARY KEY</td>
+            <td>Código ISO 3166-1 alpha-3 (3 letras mayúsculas). Calculado automáticamente en el alta de países. Excepción: <code>LNG</code> para el territorio virtual de GNL.</td>
+          </tr>
+          <tr><td class="field">Nombre</td><td class="type">TEXT</td><td>—</td><td>Nombre del país en español</td></tr>
+          <tr><td class="field">Region</td><td class="type">TEXT</td><td>—</td><td>Región geográfica o comercial (p.ej. Asia-Pacífico, Europa…)</td></tr>
+          <tr><td class="field">ReferenciaIndice</td><td class="type">TEXT</td><td>—</td><td>Referencia interna de índice de precios o mercado</td></tr>
+          <tr><td class="field">LinkFichaPais</td><td class="type">TEXT</td><td>—</td><td>URL al informe de riesgo CESCE. Se muestra como icono 🌐 en la tabla. Precargado para ~49 países.</td></tr>
+          <tr><td class="field">PersonaReferenciaOportun</td><td class="type">TEXT</td><td>—</td><td>Persona de referencia interna de Naturgy para ese mercado</td></tr>
+          <tr><td class="field">Comentarios</td><td class="type">TEXT</td><td>—</td><td>Notas libres</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- 4. Entidades -->
+    <section id="entidades">
+      <h2>4. Tabla <code>Entidades</code></h2>
+      <p>Contrapartes comerciales (empresas, organizaciones). Tabla central del CRM; referenciada por Contactos, Oportunidades y Documentos.</p>
+      <table class="fields">
+        <thead><tr><th>Campo</th><th>Tipo</th><th>Restricciones</th><th>Descripción</th></tr></thead>
+        <tbody>
+          <tr class="pk">
+            <td class="field">CodigoEntidad <span class="badge-pk">PK</span></td>
+            <td class="type">TEXT</td>
+            <td>PRIMARY KEY</td>
+            <td>Identificador único. Formato libre; se puede generar automáticamente o asignar manualmente al importar.</td>
+          </tr>
+          <tr>
+            <td class="field">Compania <span class="badge-nn">NN</span></td>
+            <td class="type">TEXT</td>
+            <td>NOT NULL</td>
+            <td>Nombre de la empresa</td>
+          </tr>
+          <tr><td class="field">Region</td><td class="type">TEXT</td><td>—</td><td>Región de negocio</td></tr>
+          <tr><td class="field">Tipo</td><td class="type">TEXT</td><td>—</td><td>Clasificación: Buyer, Seller, Trader, Shipper, Broker…</td></tr>
+          <tr class="fk">
+            <td class="field">CodigoPaisNormalizado <span class="badge-fk">FK</span></td>
+            <td class="type">TEXT</td>
+            <td>REFERENCES Pais(CodigoPaisNormalizado)</td>
+            <td>País de la entidad. Selector desplegable en el formulario de alta/edición.</td>
+          </tr>
+          <tr><td class="field">FiscalCode</td><td class="type">TEXT</td><td>—</td><td>CIF, NIF u otro código fiscal local</td></tr>
+          <tr><td class="field">LEI</td><td class="type">TEXT</td><td>—</td><td>Legal Entity Identifier (ISO 17442, 20 caracteres)</td></tr>
+          <tr><td class="field">Ticker</td><td class="type">TEXT</td><td>—</td><td>Símbolo bursátil</td></tr>
+          <tr><td class="field">DunsNumber</td><td class="type">TEXT</td><td>—</td><td>D-U-N-S Number (Dun &amp; Bradstreet)</td></tr>
+          <tr><td class="field">Direccion</td><td class="type">TEXT</td><td>—</td><td>Dirección postal completa</td></tr>
+          <tr><td class="field">Comentarios</td><td class="type">TEXT</td><td>—</td><td>Notas libres</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- 5. Contactos -->
+    <section id="contactos">
+      <h2>5. Tabla <code>Contactos</code></h2>
+      <p>Personas de contacto vinculadas a una entidad. Una entidad puede tener múltiples contactos.</p>
+      <table class="fields">
+        <thead><tr><th>Campo</th><th>Tipo</th><th>Restricciones</th><th>Descripción</th></tr></thead>
+        <tbody>
+          <tr class="pk">
+            <td class="field">id <span class="badge-pk">PK</span> <span class="badge-ai">AI</span></td>
+            <td class="type">INTEGER</td>
+            <td>PRIMARY KEY AUTOINCREMENT</td>
+            <td>Identificador numérico autoincremental</td>
+          </tr>
+          <tr class="fk">
+            <td class="field">CodigoEntidad <span class="badge-fk">FK</span> <span class="badge-nn">NN</span></td>
+            <td class="type">TEXT</td>
+            <td>NOT NULL REFERENCES Entidades(CodigoEntidad)</td>
+            <td>Entidad a la que pertenece el contacto. Se valida en el servidor antes de insertar.</td>
+          </tr>
+          <tr><td class="field">Nombre</td><td class="type">TEXT</td><td>—</td><td>Nombre completo del contacto</td></tr>
+          <tr><td class="field">Cargo</td><td class="type">TEXT</td><td>—</td><td>Título o posición profesional</td></tr>
+          <tr><td class="field">Email</td><td class="type">TEXT</td><td>—</td><td>Correo electrónico principal</td></tr>
+          <tr><td class="field">Telefono1</td><td class="type">TEXT</td><td>—</td><td>Teléfono principal</td></tr>
+          <tr><td class="field">Telefono2</td><td class="type">TEXT</td><td>—</td><td>Teléfono alternativo</td></tr>
+          <tr><td class="field">Via</td><td class="type">TEXT</td><td>—</td><td>Canal preferido de comunicación</td></tr>
+          <tr><td class="field">FechaUltimoContacto</td><td class="type">TEXT</td><td>—</td><td>Fecha del último contacto (formato libre)</td></tr>
+          <tr><td class="field">DemorarContactoAfecha</td><td class="type">TEXT</td><td>—</td><td>Fecha de próximo contacto planificado</td></tr>
+          <tr><td class="field">ProbabilidadExito</td><td class="type">TEXT</td><td>—</td><td>Valoración cualitativa de la probabilidad de éxito</td></tr>
+          <tr><td class="field">Linkedin</td><td class="type">TEXT</td><td>—</td><td>URL del perfil LinkedIn. Se renderiza como icono clicable en la tabla.</td></tr>
+          <tr><td class="field">Comentarios</td><td class="type">TEXT</td><td>—</td><td>Notas libres</td></tr>
+        </tbody>
+      </table>
+      <div class="tip">
+        <span class="icon">✔</span>
+        <span>El campo <code>CodigoContacto</code> se genera automáticamente con prefijo <code>CON</code> si no se proporciona al crear un contacto via API.</span>
+      </div>
+    </section>
+
+    <!-- 6. Oportunidades -->
+    <section id="oportunidades">
+      <h2>6. Tabla <code>Oportunidades</code></h2>
+      <p>Pipeline de oportunidades comerciales. Cada oportunidad está ligada a una entidad contraparte.</p>
+      <table class="fields">
+        <thead><tr><th>Campo</th><th>Tipo</th><th>Restricciones</th><th>Descripción</th></tr></thead>
+        <tbody>
+          <tr class="pk">
+            <td class="field">id <span class="badge-pk">PK</span> <span class="badge-ai">AI</span></td>
+            <td class="type">INTEGER</td>
+            <td>PRIMARY KEY AUTOINCREMENT</td>
+            <td>Identificador numérico autoincremental</td>
+          </tr>
+          <tr class="fk">
+            <td class="field">CodigoEntidad <span class="badge-fk">FK</span> <span class="badge-nn">NN</span></td>
+            <td class="type">TEXT</td>
+            <td>NOT NULL REFERENCES Entidades(CodigoEntidad)</td>
+            <td>Entidad contraparte de la oportunidad</td>
+          </tr>
+          <tr><td class="field">Contraparte</td><td class="type">TEXT</td><td>—</td><td>Nombre de la contraparte (puede diferir del nombre en Entidades)</td></tr>
+          <tr><td class="field">OwnerAccount</td><td class="type">TEXT</td><td>—</td><td>Responsable interno de Naturgy para esta oportunidad</td></tr>
+          <tr><td class="field">Entrega</td><td class="type">TEXT</td><td>—</td><td>Punto de entrega del GNL (p.ej. DES Huelva, FOB Sabine Pass)</td></tr>
+          <tr><td class="field">Periodo</td><td class="type">TEXT</td><td>—</td><td>Periodo de suministro (p.ej. 2025–2030)</td></tr>
+          <tr><td class="field">Volumen</td><td class="type">TEXT</td><td>—</td><td>Volumen en BCM, MTPA o TBtu según contexto</td></tr>
+          <tr><td class="field">Precio</td><td class="type">TEXT</td><td>—</td><td>Precio o indexación de precio acordada/propuesta</td></tr>
+          <tr><td class="field">SpecsContrapartePCS</td><td class="type">TEXT</td><td>—</td><td>Especificaciones técnicas de calidad del gas de la contraparte</td></tr>
+          <tr><td class="field">ProximosPasosNTGY</td><td class="type">TEXT</td><td>—</td><td>Próximas acciones a tomar por Naturgy</td></tr>
+          <tr><td class="field">ProximosPasosContraparte</td><td class="type">TEXT</td><td>—</td><td>Próximas acciones esperadas de la contraparte</td></tr>
+          <tr><td class="field">Timing</td><td class="type">TEXT</td><td>—</td><td>Urgencia o calendario crítico del deal</td></tr>
+          <tr><td class="field">Origen</td><td class="type">TEXT</td><td>—</td><td>Procedencia de la oportunidad (inbound, networking, licitación…)</td></tr>
+          <tr><td class="field">Comentarios</td><td class="type">TEXT</td><td>—</td><td>Notas libres</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- 7. Documentos -->
+    <section id="documentos">
+      <h2>7. Tabla <code>Documentos</code></h2>
+      <p>Estado de la documentación legal requerida para operar con cada entidad: KYC (Know Your Customer), NDA (Non-Disclosure Agreement) y MSPA (Master Sale &amp; Purchase Agreement).</p>
+      <table class="fields">
+        <thead><tr><th>Campo</th><th>Tipo</th><th>Restricciones</th><th>Descripción</th></tr></thead>
+        <tbody>
+          <tr class="pk">
+            <td class="field">id <span class="badge-pk">PK</span> <span class="badge-ai">AI</span></td>
+            <td class="type">INTEGER</td>
+            <td>PRIMARY KEY AUTOINCREMENT</td>
+            <td>Identificador numérico autoincremental</td>
+          </tr>
+          <tr class="fk">
+            <td class="field">CodigoEntidad <span class="badge-fk">FK</span> <span class="badge-nn">NN</span></td>
+            <td class="type">TEXT</td>
+            <td>NOT NULL REFERENCES Entidades(CodigoEntidad)</td>
+            <td>Entidad a la que pertenece el registro de documentación</td>
+          </tr>
+          <tr><td class="field">KYC_S_N</td><td class="type">TEXT</td><td>—</td><td>Estado del KYC: S (completado), N (pendiente) u otro valor</td></tr>
+          <tr><td class="field">KYC_link</td><td class="type">TEXT</td><td>—</td><td>URL al documento/expediente KYC. Se muestra como icono 📎 junto a <code>KYC_S_N</code>.</td></tr>
+          <tr><td class="field">NDA_S_N</td><td class="type">TEXT</td><td>—</td><td>Estado del NDA: S (firmado), N (pendiente) u otro valor</td></tr>
+          <tr><td class="field">FechaExpiracionNDA</td><td class="type">TEXT</td><td>—</td><td>Fecha de expiración del NDA (formato libre)</td></tr>
+          <tr><td class="field">NDALink</td><td class="type">TEXT</td><td>—</td><td>URL al documento NDA. Se muestra como icono 📎 junto a <code>NDA_S_N</code>.</td></tr>
+          <tr><td class="field">MSPASN</td><td class="type">TEXT</td><td>—</td><td>Estado del MSPA: S (en vigor), N (pendiente) u otro valor</td></tr>
+          <tr><td class="field">LinkMSPA</td><td class="type">TEXT</td><td>—</td><td>URL al documento MSPA. Se muestra como icono 📎 junto a <code>MSPASN</code>.</td></tr>
+          <tr><td class="field">Comentarios</td><td class="type">TEXT</td><td>—</td><td>Notas libres</td></tr>
+        </tbody>
+      </table>
+      <div class="info">
+        <span class="icon">ℹ</span>
+        <span>Los pares de campos (estado + enlace) se gestionan a través de la propiedad <code>linkPairs</code> del esquema frontend, que permite renderizar el icono de enlace al lado del campo de estado en la tabla.</span>
+      </div>
+    </section>
+
+    <!-- 8. Usuarios -->
+    <section id="usuarios">
+      <h2>8. Tabla <code>Usuarios</code></h2>
+      <p>Tabla de autenticación y autorización. Independiente del resto del modelo de negocio.</p>
+      <table class="fields">
+        <thead><tr><th>Campo</th><th>Tipo</th><th>Restricciones</th><th>Descripción</th></tr></thead>
+        <tbody>
+          <tr class="pk">
+            <td class="field">id <span class="badge-pk">PK</span> <span class="badge-ai">AI</span></td>
+            <td class="type">INTEGER</td>
+            <td>PRIMARY KEY AUTOINCREMENT</td>
+            <td>Identificador numérico autoincremental</td>
+          </tr>
+          <tr>
+            <td class="field">username <span class="badge-nn">NN</span></td>
+            <td class="type">TEXT</td>
+            <td>UNIQUE NOT NULL</td>
+            <td>Nombre de usuario para el login</td>
+          </tr>
+          <tr>
+            <td class="field">password <span class="badge-nn">NN</span></td>
+            <td class="type">TEXT</td>
+            <td>NOT NULL</td>
+            <td>Contraseña en texto plano (se recomienda cambiar las contraseñas por defecto)</td>
+          </tr>
+          <tr><td class="field">nombre</td><td class="type">TEXT</td><td>—</td><td>Nombre completo del usuario</td></tr>
+          <tr>
+            <td class="field">rol <span class="badge-nn">NN</span></td>
+            <td class="type">TEXT</td>
+            <td>NOT NULL DEFAULT 'user'</td>
+            <td>Rol de acceso: <code>admin</code> o <code>comercial</code></td>
+          </tr>
+        </tbody>
+      </table>
+      <h3>Usuarios por defecto (seed)</h3>
+      <p>Si la tabla <code>Usuarios</code> está vacía al arrancar, se crean dos usuarios de ejemplo:</p>
+      <table class="fields">
+        <thead><tr><th>username</th><th>password</th><th>rol</th></tr></thead>
+        <tbody>
+          <tr><td><code>admin</code></td><td><code>admin123</code></td><td>admin</td></tr>
+          <tr><td><code>comercial</code></td><td><code>comercial123</code></td><td>comercial</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- 9. Relaciones -->
+    <section id="relaciones">
+      <h2>9. Relaciones entre tablas</h2>
+      <table class="fields">
+        <thead><tr><th>Tabla hija</th><th>Campo FK</th><th>Tabla padre</th><th>Campo PK padre</th><th>Cardinalidad</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>Entidades</td>
+            <td class="field">CodigoPaisNormalizado</td>
+            <td>Pais</td>
+            <td class="field">CodigoPaisNormalizado</td>
+            <td>N Entidades → 1 Pais</td>
+          </tr>
+          <tr>
+            <td>Contactos</td>
+            <td class="field">CodigoEntidad</td>
+            <td>Entidades</td>
+            <td class="field">CodigoEntidad</td>
+            <td>N Contactos → 1 Entidad</td>
+          </tr>
+          <tr>
+            <td>Oportunidades</td>
+            <td class="field">CodigoEntidad</td>
+            <td>Entidades</td>
+            <td class="field">CodigoEntidad</td>
+            <td>N Oportunidades → 1 Entidad</td>
+          </tr>
+          <tr>
+            <td>Documentos</td>
+            <td class="field">CodigoEntidad</td>
+            <td>Entidades</td>
+            <td class="field">CodigoEntidad</td>
+            <td>N Documentos → 1 Entidad</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="tip">
+        <span class="icon">✔</span>
+        <span>Las FK están activadas con <code>PRAGMA foreign_keys = ON</code>. El servidor valida adicionalmente la existencia de la entidad padre antes de insertar (función <code>db.entityExists()</code>) para devolver mensajes de error claros al frontend.</span>
+      </div>
+    </section>
+
+    <!-- 10. Pragmas -->
+    <section id="pragmas">
+      <h2>10. Configuración SQLite</h2>
+      <table class="fields">
+        <thead><tr><th>PRAGMA</th><th>Valor</th><th>Motivo</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><code>journal_mode</code></td>
+            <td>WAL</td>
+            <td>Permite lectura concurrente mientras se escriben datos. Necesario para entornos con múltiples peticiones simultáneas.</td>
+          </tr>
+          <tr>
+            <td><code>foreign_keys</code></td>
+            <td>ON</td>
+            <td>Activa la comprobación de integridad referencial a nivel de motor.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- 11. Migraciones -->
+    <section id="migraciones">
+      <h2>11. Sistema de migraciones</h2>
+      <p>Las migraciones se ejecutan en la función <code>runMigrations()</code> de <code>database.js</code> al arrancar el servidor. Son <strong>idempotentes</strong>: comprueban el estado actual antes de aplicar cambios.</p>
+      <h3>Migraciones aplicadas</h3>
+      <table class="fields">
+        <thead><tr><th>Descripción</th><th>Condición de aplicación</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>Precarga de enlaces CESCE para 49 países</td>
+            <td><code>LinkFichaPais IS NULL OR LinkFichaPais != ?</code> para cada país</td>
+          </tr>
+          <tr>
+            <td>Corrección de datos de países sin código normalizado</td>
+            <td>Se aplica solo si el campo está vacío</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="info">
+        <span class="icon">ℹ</span>
+        <span>Para añadir una nueva migración, agrégala al bloque de <code>runMigrations()</code> en <code>database.js</code> con su propia comprobación de idempotencia.</span>
+      </div>
+
+      <h3>Exportación de datos (Migracion/)</h3>
+      <p>El script <code>Migracion/exportar_sqlite.js</code> genera 5 ficheros CSV en <code>Migracion/exports/</code> con todos los datos de la BD:</p>
+      <table class="fields">
+        <thead><tr><th>Fichero</th><th>Tabla</th></tr></thead>
+        <tbody>
+          <tr><td><code>01_Pais.csv</code></td><td>Pais</td></tr>
+          <tr><td><code>02_Entidades.csv</code></td><td>Entidades</td></tr>
+          <tr><td><code>03_Contactos.csv</code></td><td>Contactos</td></tr>
+          <tr><td><code>04_Oportunidades.csv</code></td><td>Oportunidades</td></tr>
+          <tr><td><code>05_Documentos.csv</code></td><td>Documentos</td></tr>
+        </tbody>
+      </table>
+      <p>Estos ficheros <strong>no se sincronizan con GitHub</strong> (están en <code>.gitignore</code>). Se regeneran con:</p>
+      <div style="background:#1e1e2e;color:#cdd6f4;font-family:monospace;font-size:.85rem;border-radius:8px;padding:1rem 1.5rem;margin:.8rem 0;">
+        node Migracion/exportar_sqlite.js
+      </div>
+    </section>
+
+    <!-- 12. Codificación -->
+    <section id="codigos">
+      <h2>12. Reglas de codificación</h2>
+      <h3>Código de país (CodigoPaisNormalizado)</h3>
+      <p>Sigue el estándar <strong>ISO 3166-1 alpha-3</strong>: 3 letras mayúsculas en inglés. La función <code>calcAutoCode(nombre)</code> del frontend contiene un mapa de ~200 países en español a su código ISO3.</p>
+      <p>Excepción: <code>LNG</code> — territorio virtual que agrupa oportunidades sin localización geográfica específica.</p>
+
+      <h3>Código de entidad (CodigoEntidad)</h3>
+      <p>Formato libre. Por convención, se suele usar un código alfanumérico descriptivo. Ejemplos: <code>SHELL-GNL</code>, <code>QATAR-ENERGY-01</code>.</p>
+
+      <h3>Códigos autogenerados</h3>
+      <table class="fields">
+        <thead><tr><th>Tabla</th><th>Campo</th><th>Prefijo</th><th>Ejemplo</th></tr></thead>
+        <tbody>
+          <tr><td>Contactos</td><td><code>CodigoContacto</code></td><td>CON</td><td>CON-0042</td></tr>
+          <tr><td>Oportunidades</td><td><code>CodigoOportunidad</code></td><td>OPO</td><td>OPO-0017</td></tr>
+          <tr><td>Documentos</td><td><code>CodigoDocumento</code></td><td>DOC</td><td>DOC-0008</td></tr>
+        </tbody>
+      </table>
+      <p>Si el campo de código no se proporciona al crear un registro, el servidor lo genera con <code>db.generateNextCode(table, codeField, prefix)</code>.</p>
+    </section>
+
+  </main>
+</div>
+
+<footer style="text-align:center;padding:2rem;color:var(--muted);font-size:.82rem;border-top:1px solid var(--border);margin-top:1rem;">
+  CRM GNL — Naturgy &nbsp;|&nbsp; Documento técnico interno &nbsp;|&nbsp; Versión 2.0 — Marzo 2026
+</footer>
+
+</body>
+</html>

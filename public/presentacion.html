@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CRM GNL — Presentación</title>
+  <style>
+    :root {
+      --blue: #003b6f;
+      --blue-mid: #005fa3;
+      --blue-light: #cfe3f5;
+      --orange: #e8630a;
+      --white: #ffffff;
+      --text-light: rgba(255,255,255,.88);
+      --slide-h: 100vh;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; font-family: 'Segoe UI', Arial, sans-serif; background: #0d1b2a; }
+
+    /* ── Slides ── */
+    .slide {
+      width: 100%; min-height: var(--slide-h); display: flex; flex-direction: column;
+      justify-content: center; align-items: center; padding: 4rem 8%;
+      scroll-snap-align: start; position: relative;
+    }
+    .slide-number {
+      position: absolute; top: 1.5rem; right: 2rem;
+      color: rgba(255,255,255,.3); font-size: .8rem; font-weight: 600; letter-spacing: 2px;
+    }
+    .slide-footer {
+      position: absolute; bottom: 1.2rem; left: 0; right: 0;
+      display: flex; justify-content: space-between; padding: 0 2rem;
+      color: rgba(255,255,255,.3); font-size: .75rem;
+    }
+
+    /* Backgrounds */
+    .s-cover   { background: linear-gradient(135deg, var(--blue) 0%, #001f3f 100%); }
+    .s-dark    { background: linear-gradient(135deg, #0d1b2a 0%, #162840 100%); }
+    .s-blue    { background: linear-gradient(135deg, var(--blue-mid) 0%, var(--blue) 100%); }
+    .s-orange  { background: linear-gradient(135deg, var(--orange) 0%, #b8470a 100%); }
+    .s-split   { background: var(--blue); flex-direction: row; gap: 4rem; align-items: center; }
+
+    /* Typography */
+    h1 { font-size: clamp(2rem, 5vw, 3.8rem); font-weight: 900; color: var(--white); line-height: 1.1; }
+    h2 { font-size: clamp(1.4rem, 3vw, 2.2rem); font-weight: 700; color: var(--white); margin-bottom: 1rem; }
+    h3 { font-size: clamp(1rem, 2vw, 1.3rem); font-weight: 600; color: var(--orange); margin-bottom: .5rem; }
+    p  { color: var(--text-light); font-size: clamp(.9rem, 1.5vw, 1.1rem); line-height: 1.7; max-width: 800px; }
+    .subtitle { color: var(--blue-light); font-size: clamp(1rem, 2vw, 1.4rem); margin-top: .5rem; font-weight: 300; }
+    .orange { color: var(--orange); }
+    .accent { color: var(--blue-light); }
+
+    /* Logo */
+    .logo { font-size: clamp(2.5rem, 6vw, 5rem); font-weight: 900; letter-spacing: -2px; color: var(--white); }
+    .logo span { color: var(--orange); }
+
+    /* Divider */
+    .divider { width: 60px; height: 4px; background: var(--orange); border-radius: 2px; margin: 1.2rem 0; }
+
+    /* Cards grid */
+    .grid { display: grid; gap: 1.5rem; width: 100%; max-width: 1100px; margin-top: 1.5rem; }
+    .g2 { grid-template-columns: repeat(2, 1fr); }
+    .g3 { grid-template-columns: repeat(3, 1fr); }
+    .g4 { grid-template-columns: repeat(4, 1fr); }
+    @media (max-width: 700px) { .g2, .g3, .g4 { grid-template-columns: 1fr; } }
+
+    .card {
+      background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.12);
+      border-radius: 12px; padding: 1.5rem; transition: background .2s;
+    }
+    .card:hover { background: rgba(255,255,255,.12); }
+    .card .icon { font-size: 2rem; margin-bottom: .6rem; }
+    .card h3 { color: var(--white); font-size: 1rem; margin-bottom: .4rem; }
+    .card p { font-size: .88rem; color: rgba(255,255,255,.65); max-width: none; }
+
+    /* KPI */
+    .kpi { text-align: center; }
+    .kpi .num { font-size: clamp(2.5rem, 5vw, 4rem); font-weight: 900; color: var(--orange); line-height: 1; }
+    .kpi .label { color: rgba(255,255,255,.7); font-size: .9rem; margin-top: .3rem; }
+
+    /* Split */
+    .split-text { flex: 1; }
+    .split-visual {
+      flex: 1; background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.15);
+      border-radius: 16px; padding: 2rem; display: flex; flex-direction: column; gap: 1rem;
+    }
+    .row-item {
+      display: flex; align-items: center; gap: 1rem;
+      background: rgba(255,255,255,.05); border-radius: 8px; padding: .8rem 1rem;
+    }
+    .row-item .ri { font-size: 1.4rem; }
+    .row-item .rt { font-size: .9rem; color: rgba(255,255,255,.8); }
+
+    /* Table */
+    table.pres { width: 100%; max-width: 900px; border-collapse: collapse; margin-top: 1.2rem; font-size: .9rem; }
+    table.pres th { background: rgba(255,255,255,.12); color: rgba(255,255,255,.9); padding: .6rem 1rem; text-align: left; }
+    table.pres td { padding: .55rem 1rem; border-bottom: 1px solid rgba(255,255,255,.08); color: rgba(255,255,255,.75); }
+    table.pres tr:hover td { background: rgba(255,255,255,.05); }
+    .check { color: #4ade80; }
+    .cross { color: rgba(255,255,255,.3); }
+
+    /* Timeline */
+    .timeline { display: flex; gap: 0; margin-top: 1.5rem; width: 100%; max-width: 900px; }
+    .tl-step { flex: 1; text-align: center; position: relative; }
+    .tl-step::before {
+      content: ''; position: absolute; top: 1rem; left: 50%; right: -50%;
+      height: 2px; background: rgba(255,255,255,.2);
+    }
+    .tl-step:last-child::before { display: none; }
+    .tl-dot {
+      width: 2rem; height: 2rem; border-radius: 50%; background: var(--orange);
+      margin: 0 auto .6rem; display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: .8rem; color: #fff; position: relative; z-index: 1;
+    }
+    .tl-step .tl-label { font-size: .8rem; color: rgba(255,255,255,.7); }
+    .tl-step .tl-title { font-size: .85rem; color: #fff; font-weight: 600; margin-top: .2rem; }
+
+    /* Nav dots */
+    .nav-dots {
+      position: fixed; right: 1.5rem; top: 50%; transform: translateY(-50%);
+      display: flex; flex-direction: column; gap: .5rem; z-index: 100;
+    }
+    .nav-dot {
+      width: 10px; height: 10px; border-radius: 50%; background: rgba(255,255,255,.25);
+      cursor: pointer; transition: background .2s, transform .2s; border: none;
+    }
+    .nav-dot.active { background: var(--orange); transform: scale(1.3); }
+    .nav-dot:hover { background: rgba(255,255,255,.6); }
+
+    /* Print */
+    @media print {
+      .nav-dots { display: none; }
+      .slide { min-height: auto; page-break-after: always; padding: 2rem 5%; }
+    }
+
+    /* Scroll snap */
+    html { scroll-snap-type: y mandatory; overflow-y: scroll; }
+  </style>
+</head>
+<body>
+
+<!-- Nav dots -->
+<div class="nav-dots" id="navDots"></div>
+
+<!-- ─── SLIDE 1: Portada ─── -->
+<section class="slide s-cover" id="slide-1">
+  <div class="slide-number">01 / 12</div>
+  <div class="logo" style="margin-bottom:2rem;">GNL<span>·</span>CRM</div>
+  <h1>Herramienta de Gestión<br>Comercial GNL</h1>
+  <p class="subtitle">Plataforma CRM para el negocio de Gas Natural Licuado de Naturgy</p>
+  <div class="divider" style="margin-top:2rem;"></div>
+  <p style="margin-top:1rem;font-size:.9rem;color:rgba(255,255,255,.45);">Versión 2.0 — Marzo 2026</p>
+  <div class="slide-footer"><span>Naturgy — Uso Interno</span><span>CRM GNL v2.0</span></div>
+</section>
+
+<!-- ─── SLIDE 2: Contexto ─── -->
+<section class="slide s-dark" id="slide-2">
+  <div class="slide-number">02 / 12</div>
+  <h2>Contexto y necesidad</h2>
+  <div class="divider"></div>
+  <p>El negocio de GNL de Naturgy gestiona relaciones comerciales con <strong class="orange">contrapartes en más de 40 países</strong>. La complejidad del pipeline, los requisitos legales (KYC, NDA, MSPA) y la necesidad de información actualizada exigen una herramienta centralizada.</p>
+  <div class="grid g3" style="margin-top:2rem;">
+    <div class="card">
+      <div class="icon">🌍</div>
+      <h3>Dispersión geográfica</h3>
+      <p>Contrapartes en Asia-Pacífico, Europa, América, Oriente Medio y África</p>
+    </div>
+    <div class="card">
+      <div class="icon">📋</div>
+      <h3>Documentación compleja</h3>
+      <p>KYC, NDA y MSPA pendientes con múltiples entidades simultáneamente</p>
+    </div>
+    <div class="card">
+      <div class="icon">📈</div>
+      <h3>Pipeline activo</h3>
+      <p>Decenas de oportunidades en distintas fases de negociación en paralelo</p>
+    </div>
+  </div>
+  <div class="slide-footer"><span>Naturgy — Uso Interno</span><span>CRM GNL v2.0</span></div>
+</section>
+
+<!-- ─── SLIDE 3: Solución ─── -->
+<section class="slide s-blue" id="slide-3">
+  <div class="slide-number">03 / 12</div>
+  <h2>La solución: CRM GNL</h2>
+  <div class="divider"></div>
+  <p>Una <strong>aplicación web SPA</strong> completa, desplegada en servidor propio, que centraliza toda la información comercial con acceso desde cualquier dispositivo con navegador.</p>
+  <div class="grid g4" style="margin-top:2rem;">
+    <div class="card kpi">
+      <div class="num">6</div>
+      <div class="label">Módulos de datos</div>
+    </div>
+    <div class="card kpi">
+      <div class="num">∞</div>
+      <div class="label">Usuarios simultáneos</div>
+    </div>
+    <div class="card kpi">
+      <div class="num">IA</div>
+      <div class="label">Asistente GPT-4o</div>
+    </div>
+    <div class="card kpi">
+      <div class="num">24/7</div>
+      <div class="label">Disponibilidad (PM2)</div>
+    </div>
+  </div>
+  <div class="slide-footer"><span>Naturgy — Uso Interno</span><span>CRM GNL v2.0</span></div>
+</section>
+
+<!-- ─── SLIDE 4: Stack técnico ─── -->
+<section class="slide s-dark" id="slide-4">
+  <div class="slide-number">04 / 12</div>
+  <h2>Stack tecnológico</h2>
+  <div class="divider"></div>
+  <div class="grid g2" style="max-width:900px;">
+    <div>
+      <h3>Backend</h3>
+      <div class="grid" style="gap:.8rem;margin-top:.8rem;">
+        <div class="row-item"><span class="ri">⚙️</span><span class="rt"><strong>Node.js + Express 5</strong> — Servidor API REST</span></div>
+        <div class="row-item"><span class="ri">🗄️</span><span class="rt"><strong>SQLite (better-sqlite3)</strong> — Base de datos embebida, WAL mode</span></div>
+        <div class="row-item"><span class="ri">🔐</span><span class="rt"><strong>express-session</strong> — Autenticación con sesiones</span></div>
+        <div class="row-item"><span class="ri">📊</span><span class="rt"><strong>xlsx</strong> — Importación de datos desde Excel</span></div>
+        <div class="row-item"><span class="ri">🤖</span><span class="rt"><strong>OpenAI SDK</strong> — GPT-4o-mini para el asistente IA</span></div>
+        <div class="row-item"><span class="ri">🔄</span><span class="rt"><strong>PM2</strong> — Proceso persistente en servidor Ubuntu</span></div>
+      </div>
+    </div>
+    <div>
+      <h3>Frontend</h3>
+      <div class="grid" style="gap:.8rem;margin-top:.8rem;">
+        <div class="row-item"><span class="ri">🌐</span><span class="rt"><strong>HTML/CSS/JS vanilla</strong> — SPA sin frameworks, cero dependencias frontend</span></div>
+        <div class="row-item"><span class="ri">🗺️</span><span class="rt"><strong>Leaflet + OpenStreetMap</strong> — Mapa mundial interactivo</span></div>
+        <div class="row-item"><span class="ri">🎨</span><span class="rt"><strong>Font Awesome</strong> — Iconografía</span></div>
+        <div class="row-item"><span class="ri">📡</span><span class="rt"><strong>Fetch API</strong> — Comunicación con el backend</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer"><span>Naturgy — Uso Interno</span><span>CRM GNL v2.0</span></div>
+</section>
+
+<!-- ─── SLIDE 5: Módulos ─── -->
+<section class="slide s-blue" id="slide-5">
+  <div class="slide-number">05 / 12</div>
+  <h2>Módulos del CRM</h2>
+  <div class="divider"></div>
+  <div class="grid g3" style="max-width:1000px;margin-top:1rem;">
+    <div class="card">
+      <div class="icon">🗺️</div>
+      <h3>Dashboard</h3>
+      <p>KPIs en tiempo real y mapa mundial con presencia de contrapartes por país</p>
+    </div>
+    <div class="card">
+      <div class="icon">🌍</div>
+      <h3>Países</h3>
+      <p>Catálogo de países con código ISO3, región, referencia de índice y enlace a ficha de riesgo CESCE</p>
+    </div>
+    <div class="card">
+      <div class="icon">🏢</div>
+      <h3>Entidades</h3>
+      <p>Contrapartes: nombre, tipo, país (FK), LEI, DUNS, ticker y datos de identificación</p>
+    </div>
+    <div class="card">
+      <div class="icon">👤</div>
+      <h3>Contactos</h3>
+      <p>Personas de contacto por entidad con LinkedIn, canal preferido y fechas de seguimiento</p>
+    </div>
+    <div class="card">
+      <div class="icon">💼</div>
+      <h3>Oportunidades</h3>
+      <p>Pipeline comercial: volumen, precio, periodo, entrega, próximos pasos y timing</p>
+    </div>
+    <div class="card">
+      <div class="icon">📑</div>
+      <h3>Documentos</h3>
+      <p>Estado y enlace de KYC, NDA y MSPA para cada entidad</p>
+    </div>
+  </div>
+  <div class="slide-footer"><span>Naturgy — Uso Interno</span><span>CRM GNL v2.0</span></div>
+</section>
+
+<!-- ─── SLIDE 6: Modelo de datos ─── -->
+<section class="slide s-dark" id="slide-6">
+  <div class="slide-number">06 / 12</div>
+  <h2>Modelo de datos</h2>
+  <div class="divider"></div>
+  <p>5 tablas de negocio interrelacionadas + tabla de usuarios. Integridad referencial garantizada por FK de SQLite.</p>
+  <table class="pres" style="margin-top:1.5rem;">
+    <thead>
+      <tr><th>Tabla</th><th>PK</th><th>Registros típicos</th><th>Enlaza con</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Pais</td><td>CodigoPaisNormalizado (ISO3)</td><td>50 países</td><td>—</td></tr>
+      <tr><td>Entidades</td><td>CodigoEntidad</td><td>50–200 entidades</td><td>Pais</td></tr>
+      <tr><td>Contactos</td><td>id (autoincrement)</td><td>100–500 contactos</td><td>Entidades</td></tr>
+      <tr><td>Oportunidades</td><td>id (autoincrement)</td><td>50–200 oportunidades</td><td>Entidades</td></tr>
+      <tr><td>Documentos</td><td>id (autoincrement)</td><td>50–200 registros</td><td>Entidades</td></tr>
+    </tbody>
+  </table>
+  <div class="slide-footer"><span>Naturgy — Uso Interno</span><span>CRM GNL v2.0</span></div>
+</section>
+
+<!-- ─── SLIDE 7: Funcionalidades diferenciales ─── -->
+<section class="slide s-orange" id="slide-7">
+  <div class="slide-number">07 / 12</div>
+  <h2>Funcionalidades diferenciales</h2>
+  <div class="divider" style="background:#fff;"></div>
+  <div class="grid g2" style="max-width:900px;margin-top:1rem;">
+    <div class="card" style="background:rgba(0,0,0,.15);border-color:rgba(255,255,255,.2);">
+      <div class="icon">🔗</div>
+      <h3 style="color:#fff;">Iconos de enlace inteligentes</h3>
+      <p>LinkedIn de contactos, documentos KYC/NDA/MSPA y fichas de riesgo país (CESCE) se muestran directamente como iconos clicables en las tablas</p>
+    </div>
+    <div class="card" style="background:rgba(0,0,0,.15);border-color:rgba(255,255,255,.2);">
+      <div class="icon">🌍</div>
+      <h3 style="color:#fff;">Selector de país con FK garantizada</h3>
+      <p>El formulario de entidades usa un desplegable dinámico de países, evitando errores de integridad referencial</p>
+    </div>
+    <div class="card" style="background:rgba(0,0,0,.15);border-color:rgba(255,255,255,.2);">
+      <div class="icon">⚡</div>
+      <h3 style="color:#fff;">Código ISO auto-calculado</h3>
+      <p>Al dar de alta un país, el código ISO 3166-1 alpha-3 se calcula automáticamente al escribir el nombre en español</p>
+    </div>
+    <div class="card" style="background:rgba(0,0,0,.15);border-color:rgba(255,255,255,.2);">
+      <div class="icon">📥</div>
+      <h3 style="color:#fff;">Importación Excel masiva</h3>
+      <p>Carga de datos desde .xlsx con 5 hojas predefinidas respetando el orden de importación por FK</p>
+    </div>
+  </div>
+  <div class="slide-footer" style="color:rgba(255,255,255,.35);"><span>Naturgy — Uso Interno</span><span>CRM GNL v2.0</span></div>
+</section>
+
+<!-- ─── SLIDE 8: Asistente IA ─── -->
+<section class="slide s-split" id="slide-8">
+  <div class="slide-number">08 / 12</div>
+  <div class="split-text">
+    <h3>Inteligencia Artificial</h3>
+    <h2 style="margin-top:.3rem;">Asistente comercial<br>integrado</h2>
+    <div class="divider"></div>
+    <p>El panel lateral de chat permite hacer preguntas en lenguaje natural sobre los datos del CRM y el mercado GNL, con dos modos de funcionamiento.</p>
+    <ul style="margin-top:1rem;padding-left:1.5rem;color:rgba(255,255,255,.8);font-size:.95rem;line-height:2;">
+      <li>Analizar pipeline por región o contraparte</li>
+      <li>Resumir el estado de relaciones con entidades</li>
+      <li>Identificar documentación pendiente</li>
+      <li>Contexto de mercado spot GNL</li>
+      <li>Recomendaciones de próximos pasos</li>
+    </ul>
+  </div>
+  <div class="split-visual">
+    <div style="color:rgba(255,255,255,.5);font-size:.75rem;margin-bottom:.5rem;">MODO IA (GPT-4o-mini)</div>
+    <div class="row-item" style="flex-direction:column;align-items:flex-start;background:rgba(255,255,255,.08);">
+      <span style="font-size:.75rem;color:rgba(255,255,255,.4);">Usuario</span>
+      <span style="font-size:.88rem;color:#fff;margin-top:.2rem;">¿Qué entidades asiáticas no tienen NDA firmado?</span>
+    </div>
+    <div class="row-item" style="flex-direction:column;align-items:flex-start;background:rgba(232,99,10,.15);border-color:rgba(232,99,10,.3);">
+      <span style="font-size:.75rem;color:var(--orange);">Asistente IA</span>
+      <span style="font-size:.85rem;color:rgba(255,255,255,.85);margin-top:.2rem;line-height:1.6;">
+        He identificado <strong style="color:#fff;">3 entidades</strong> en la región Asia-Pacífico sin NDA vigente:<br>
+        • JERA Co. (JPN) — En negociación<br>
+        • POSCO (KOR) — Pendiente de firma<br>
+        • PTT (THA) — Sin iniciar<br>
+        <em style="color:rgba(255,255,255,.5);font-size:.8rem;">Recomiendo priorizar JERA dada la oportunidad activa.</em>
+      </span>
+    </div>
+    <div style="display:flex;gap:.5rem;margin-top:.5rem;align-items:center;">
+      <div style="background:rgba(255,255,255,.1);border-radius:6px;padding:.4rem .8rem;font-size:.8rem;color:rgba(255,255,255,.6);">Básico</div>
+      <div style="background:var(--orange);border-radius:6px;padding:.4rem .8rem;font-size:.8rem;color:#fff;font-weight:600;">IA</div>
+      <span style="font-size:.75rem;color:rgba(255,255,255,.4);">Toggle en cabecera del chat</span>
+    </div>
+  </div>
+  <div class="slide-footer"><span>Naturgy — Uso Interno</span><span>CRM GNL v2.0</span></div>
+</section>
+
+<!-- ─── SLIDE 9: Seguridad ─── -->
+<section class="slide s-dark" id="slide-9">
+  <div class="slide-number">09 / 12</div>
+  <h2>Seguridad y acceso</h2>
+  <div class="divider"></div>
+  <div class="grid g2" style="max-width:900px;">
+    <div>
+      <h3>Autenticación</h3>
+      <div class="grid" style="gap:.8rem;margin-top:.8rem;">
+        <div class="row-item"><span class="ri">🔑</span><span class="rt">Sesiones seguras con <strong>express-session</strong> (8 h de duración)</span></div>
+        <div class="row-item"><span class="ri">🛡️</span><span class="rt">Middleware <strong>requireAuth</strong> en todos los endpoints de la API</span></div>
+        <div class="row-item"><span class="ri">👑</span><span class="rt">Middleware <strong>requireAdmin</strong> para gestión de usuarios</span></div>
+      </div>
+    </div>
+    <div>
+      <h3>Roles</h3>
+      <table class="pres" style="margin-top:.8rem;">
+        <thead><tr><th>Funcionalidad</th><th>comercial</th><th>admin</th></tr></thead>
+        <tbody>
+          <tr><td>Datos CRM</td><td class="check">✔</td><td class="check">✔</td></tr>
+          <tr><td>Asistente IA</td><td class="check">✔</td><td class="check">✔</td></tr>
+          <tr><td>Importar Excel</td><td class="check">✔</td><td class="check">✔</td></tr>
+          <tr><td>Gestión usuarios</td><td class="cross">—</td><td class="check">✔</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="slide-footer"><span>Naturgy — Uso Interno</span><span>CRM GNL v2.0</span></div>
+</section>
+
+<!-- ─── SLIDE 10: Infraestructura ─── -->
+<section class="slide s-blue" id="slide-10">
+  <div class="slide-number">10 / 12</div>
+  <h2>Infraestructura de despliegue</h2>
+  <div class="divider"></div>
+  <div class="grid g2" style="max-width:900px;">
+    <div class="card">
+      <div class="icon">💻</div>
+      <h3>Entorno local</h3>
+      <p><code style="color:#89dceb;">localhost:3000</code><br>Node.js directo, ideal para desarrollo y pruebas rápidas</p>
+    </div>
+    <div class="card">
+      <div class="icon">☁️</div>
+      <h3>Servidor de pruebas</h3>
+      <p><code style="color:#89dceb;">pruebascrm.ddns.me</code><br>Ubuntu + Nginx (reverse proxy) + PM2 (proceso persistente)</p>
+    </div>
+  </div>
+  <div style="margin-top:1.5rem;max-width:900px;width:100%;">
+    <h3>Flujo de despliegue</h3>
+    <div class="timeline" style="margin-top:1rem;">
+      <div class="tl-step">
+        <div class="tl-dot">1</div>
+        <div class="tl-title">git push</div>
+        <div class="tl-label">Cambios a GitHub</div>
+      </div>
+      <div class="tl-step">
+        <div class="tl-dot">2</div>
+        <div class="tl-title">git pull</div>
+        <div class="tl-label">En servidor Ubuntu</div>
+      </div>
+      <div class="tl-step">
+        <div class="tl-dot">3</div>
+        <div class="tl-title">pm2 restart</div>
+        <div class="tl-label">Recarga la app</div>
+      </div>
+      <div class="tl-step">
+        <div class="tl-dot">4</div>
+        <div class="tl-title">Verificar</div>
+        <div class="tl-label">Browser + /api/me</div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-footer"><span>Naturgy — Uso Interno</span><span>CRM GNL v2.0</span></div>
+</section>
+
+<!-- ─── SLIDE 11: Roadmap ─── -->
+<section class="slide s-dark" id="slide-11">
+  <div class="slide-number">11 / 12</div>
+  <h2>Posibles mejoras futuras</h2>
+  <div class="divider"></div>
+  <div class="grid g3" style="max-width:1000px;margin-top:1rem;">
+    <div class="card">
+      <div class="icon">📧</div>
+      <h3>Alertas automáticas</h3>
+      <p>Notificaciones por email cuando un NDA está próximo a vencer o una oportunidad lleva tiempo sin actualizar</p>
+    </div>
+    <div class="card">
+      <div class="icon">📊</div>
+      <h3>Reporting avanzado</h3>
+      <p>Gráficos de evolución del pipeline, exportación de informes en PDF y dashboards por región</p>
+    </div>
+    <div class="card">
+      <div class="icon">🔗</div>
+      <h3>Integración con Power BI</h3>
+      <p>Conexión a los CSVs exportados para visualizaciones corporativas en Power BI / Power Apps</p>
+    </div>
+    <div class="card">
+      <div class="icon">🤝</div>
+      <h3>SSO Corporativo</h3>
+      <p>Autenticación via Azure AD / Microsoft 365 para integración con el entorno Naturgy</p>
+    </div>
+    <div class="card">
+      <div class="icon">📱</div>
+      <h3>App móvil</h3>
+      <p>Progressive Web App (PWA) para acceso offline y notificaciones push en dispositivos móviles</p>
+    </div>
+    <div class="card">
+      <div class="icon">🔄</div>
+      <h3>Migración Dataverse</h3>
+      <p>Documentación lista para migrar a Power Apps / Dataverse si se requiere integración corporativa completa</p>
+    </div>
+  </div>
+  <div class="slide-footer"><span>Naturgy — Uso Interno</span><span>CRM GNL v2.0</span></div>
+</section>
+
+<!-- ─── SLIDE 12: Cierre ─── -->
+<section class="slide s-cover" id="slide-12">
+  <div class="slide-number">12 / 12</div>
+  <div class="logo" style="margin-bottom:1.5rem;">GNL<span>·</span>CRM</div>
+  <h2 style="font-weight:300;font-size:1.8rem;">Una herramienta diseñada para el equipo GNL de Naturgy</h2>
+  <div class="divider" style="margin:2rem 0;"></div>
+  <div class="grid g3" style="max-width:700px;gap:1rem;">
+    <div style="text-align:center;">
+      <div style="font-size:1.8rem;margin-bottom:.3rem;">📘</div>
+      <a href="guia-usuario.html" style="color:var(--blue-light);font-size:.9rem;text-decoration:none;">Guía de Usuario</a>
+    </div>
+    <div style="text-align:center;">
+      <div style="font-size:1.8rem;margin-bottom:.3rem;">🗄️</div>
+      <a href="diseno-bbdd.html" style="color:var(--blue-light);font-size:.9rem;text-decoration:none;">Diseño BBDD</a>
+    </div>
+    <div style="text-align:center;">
+      <div style="font-size:1.8rem;margin-bottom:.3rem;">🏠</div>
+      <a href="/" style="color:var(--blue-light);font-size:.9rem;text-decoration:none;">Ir a la aplicación</a>
+    </div>
+  </div>
+  <div class="slide-footer"><span>Naturgy — Uso Interno</span><span>© 2026 Naturgy</span></div>
+</section>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const nav = document.getElementById('navDots');
+  slides.forEach((s, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'nav-dot' + (i === 0 ? ' active' : '');
+    btn.title = `Slide ${i + 1}`;
+    btn.addEventListener('click', () => s.scrollIntoView({ behavior: 'smooth' }));
+    nav.appendChild(btn);
+  });
+
+  const dots = nav.querySelectorAll('.nav-dot');
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        const idx = [...slides].indexOf(e.target);
+        dots.forEach((d, i) => d.classList.toggle('active', i === idx));
+      }
+    });
+  }, { threshold: .5 });
+  slides.forEach(s => obs.observe(s));
+
+  // Keyboard navigation
+  document.addEventListener('keydown', e => {
+    const active = [...dots].findIndex(d => d.classList.contains('active'));
+    if ((e.key === 'ArrowDown' || e.key === 'ArrowRight') && active < slides.length - 1) {
+      slides[active + 1].scrollIntoView({ behavior: 'smooth' });
+    }
+    if ((e.key === 'ArrowUp' || e.key === 'ArrowLeft') && active > 0) {
+      slides[active - 1].scrollIntoView({ behavior: 'smooth' });
+    }
+  });
+</script>
+</body>
+</html>
