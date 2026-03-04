@@ -61,11 +61,21 @@ const COUNTRY_COORDS = {
 
 // ============ API HELPERS ============
 async function api(url, options = {}) {
-  const res = await fetch(url, {
-    headers: { 'Content-Type': 'application/json', ...options.headers },
-    ...options,
-  });
-  const data = await res.json();
+  let res;
+  try {
+    res = await fetch(url, {
+      headers: { 'Content-Type': 'application/json', ...options.headers },
+      ...options,
+    });
+  } catch (e) {
+    throw new Error('No se pudo conectar con el servidor');
+  }
+  let data;
+  try {
+    data = await res.json();
+  } catch (e) {
+    throw new Error(`Error del servidor (HTTP ${res.status})`);
+  }
   if (!res.ok) throw new Error(data.error || 'Error de servidor');
   return data;
 }
