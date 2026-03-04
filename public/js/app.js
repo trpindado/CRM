@@ -625,6 +625,7 @@ const tableSchemas = {
     columns: ['CodigoEntidad', 'Compania', 'Region', 'Tipo', 'CodigoPaisNormalizado', 'FiscalCode', 'LEI', 'Ticker', 'DunsNumber', 'Direccion', 'Comentarios'],
     labels: { CodigoEntidad: 'Codigo', Compania: 'Compania', Region: 'Region', Tipo: 'Tipo', CodigoPaisNormalizado: 'Pais', FiscalCode: 'Fiscal Code', LEI: 'LEI', Ticker: 'Ticker', DunsNumber: 'DUNS', Direccion: 'Direccion', Comentarios: 'Comentarios' },
     displayCols: ['CodigoEntidad', 'Compania', 'Region', 'Tipo', 'CodigoPaisNormalizado'],
+    selectPais: true,
   },
   contactos: {
     endpoint: 'contactos',
@@ -825,6 +826,7 @@ function openCreateModal(tableName) {
   document.getElementById('modalSave').onclick = () => saveRecord(tableName, null);
   document.getElementById('modalOverlay').classList.add('active');
   if (schema.requiresEntity) populateEntityDropdown(null);
+  if (schema.selectPais) populatePaisDropdown(null);
 }
 
 async function openEditModal(tableName, id) {
@@ -838,6 +840,7 @@ async function openEditModal(tableName, id) {
     document.getElementById('modalSave').onclick = () => saveRecord(tableName, id);
     document.getElementById('modalOverlay').classList.add('active');
     if (schema.requiresEntity) populateEntityDropdown(record.CodigoEntidad);
+    if (schema.selectPais) populatePaisDropdown(record.CodigoPaisNormalizado);
   } catch (e) {
     toast(e.message, 'error');
   }
@@ -870,6 +873,16 @@ function buildForm(schema, data, options = {}) {
         </div>`;
     }
 
+    if (col === 'CodigoPaisNormalizado' && schema.selectPais) {
+      return `
+        <div class="form-group">
+          <label>${schema.labels[col] || col}</label>
+          <select class="form-control" name="${col}" id="paisDropdown">
+            <option value="">-- Seleccionar país --</option>
+          </select>
+        </div>`;
+    }
+
     const inputType = 'text';
     const placeholder = col === 'password' && !data[col] ? 'Dejar vacío para no cambiar' : '';
     return `
@@ -885,7 +898,6 @@ async function populateEntityDropdown(selectedValue) {
     const entidades = await api('/api/entidades-list');
     const select = document.getElementById('entityDropdown');
     if (!select) return;
-    // Keep the first placeholder option
     select.innerHTML = '<option value="">-- Seleccionar entidad --</option>';
     entidades.forEach(e => {
       const opt = document.createElement('option');
@@ -896,6 +908,24 @@ async function populateEntityDropdown(selectedValue) {
     });
   } catch (e) {
     console.error('Error loading entidades list:', e);
+  }
+}
+
+async function populatePaisDropdown(selectedValue) {
+  try {
+    const paises = await api('/api/paises-list');
+    const select = document.getElementById('paisDropdown');
+    if (!select) return;
+    select.innerHTML = '<option value="">-- Seleccionar país --</option>';
+    paises.forEach(p => {
+      const opt = document.createElement('option');
+      opt.value = p.CodigoPaisNormalizado;
+      opt.textContent = `${p.CodigoPaisNormalizado} - ${p.Nombre}`;
+      if (p.CodigoPaisNormalizado === selectedValue) opt.selected = true;
+      select.appendChild(opt);
+    });
+  } catch (e) {
+    console.error('Error loading paises list:', e);
   }
 }
 

@@ -301,6 +301,10 @@ app.get('/api/entidades-list', requireAuth, (req, res) => {
   res.json(db.getEntidadesList());
 });
 
+app.get('/api/paises-list', requireAuth, (req, res) => {
+  res.json(db.getPaisesList());
+});
+
 // ============ AI CHAT ============
 app.get('/api/ai/status', (req, res) => {
   res.json({ openaiAvailable: !!process.env.OPENAI_API_KEY });

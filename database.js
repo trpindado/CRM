@@ -301,6 +301,69 @@ function runMigrations() {
       // Index may already exist
     }
   }
+
+  // Migration: replace gnlinfo.com placeholder links with real World Bank country data links
+  const placeholderCount = db.prepare("SELECT COUNT(*) as c FROM Pais WHERE LinkFichaPais LIKE '%gnlinfo.com%'").get().c;
+  if (placeholderCount > 0) {
+    const countryLinks = {
+      'ANG': 'https://data.worldbank.org/country/AGO',
+      'ARG': 'https://data.worldbank.org/country/ARG',
+      'AUS': 'https://data.worldbank.org/country/AUS',
+      'BGD': 'https://data.worldbank.org/country/BGD',
+      'BEL': 'https://data.worldbank.org/country/BEL',
+      'BRA': 'https://data.worldbank.org/country/BRA',
+      'CHL': 'https://data.worldbank.org/country/CHL',
+      'CHN': 'https://data.worldbank.org/country/CHN',
+      'COL': 'https://data.worldbank.org/country/COL',
+      'DNK': 'https://data.worldbank.org/country/DNK',
+      'EGY': 'https://data.worldbank.org/country/EGY',
+      'FIN': 'https://data.worldbank.org/country/FIN',
+      'FRA': 'https://data.worldbank.org/country/FRA',
+      'DEU': 'https://data.worldbank.org/country/DEU',
+      'GRC': 'https://data.worldbank.org/country/GRC',
+      'IND': 'https://data.worldbank.org/country/IND',
+      'IDN': 'https://data.worldbank.org/country/IDN',
+      'ITA': 'https://data.worldbank.org/country/ITA',
+      'JPN': 'https://data.worldbank.org/country/JPN',
+      'KWT': 'https://data.worldbank.org/country/KWT',
+      'LNG': 'https://www.giignl.org/resources/',
+      'MYS': 'https://data.worldbank.org/country/MYS',
+      'MRT': 'https://data.worldbank.org/country/MRT',
+      'MEX': 'https://data.worldbank.org/country/MEX',
+      'MOZ': 'https://data.worldbank.org/country/MOZ',
+      'NLD': 'https://data.worldbank.org/country/NLD',
+      'NGA': 'https://data.worldbank.org/country/NGA',
+      'OMN': 'https://data.worldbank.org/country/OMN',
+      'PAK': 'https://data.worldbank.org/country/PAK',
+      'PNG': 'https://data.worldbank.org/country/PNG',
+      'PER': 'https://data.worldbank.org/country/PER',
+      'PHL': 'https://data.worldbank.org/country/PHL',
+      'POL': 'https://data.worldbank.org/country/POL',
+      'PRT': 'https://data.worldbank.org/country/PRT',
+      'QAT': 'https://data.worldbank.org/country/QAT',
+      'RUS': 'https://data.worldbank.org/country/RUS',
+      'SGP': 'https://data.worldbank.org/country/SGP',
+      'KOR': 'https://data.worldbank.org/country/KOR',
+      'ESP': 'https://data.worldbank.org/country/ESP',
+      'SWE': 'https://data.worldbank.org/country/SWE',
+      'TWN': 'https://data.worldbank.org/country/TWN',
+      'TZA': 'https://data.worldbank.org/country/TZA',
+      'THA': 'https://data.worldbank.org/country/THA',
+      'TTO': 'https://data.worldbank.org/country/TTO',
+      'TUR': 'https://data.worldbank.org/country/TUR',
+      'ARE': 'https://data.worldbank.org/country/ARE',
+      'GBR': 'https://data.worldbank.org/country/GBR',
+      'USA': 'https://data.worldbank.org/country/USA',
+      'VNM': 'https://data.worldbank.org/country/VNM',
+    };
+    const updateLink = db.prepare("UPDATE Pais SET LinkFichaPais = ? WHERE CodigoPaisNormalizado = ? AND LinkFichaPais LIKE '%gnlinfo.com%'");
+    let updated = 0;
+    Object.entries(countryLinks).forEach(([code, link]) => {
+      const result = updateLink.run(link, code);
+      updated += result.changes;
+    });
+    console.log(`Migration: updated ${updated} country links to World Bank data`);
+  }
 }
 
 // Generate next sequential code for a table
@@ -322,6 +385,12 @@ function generateNextCode(table, codeColumn, prefix) {
 function getEntidadesList() {
   const db = getDb();
   return db.prepare('SELECT CodigoEntidad, Compania FROM Entidades ORDER BY Compania').all();
+}
+
+// Get list of paises for dropdown
+function getPaisesList() {
+  const db = getDb();
+  return db.prepare('SELECT CodigoPaisNormalizado, Nombre FROM Pais ORDER BY Nombre').all();
 }
 
 // Check if entity exists
@@ -577,6 +646,7 @@ module.exports = {
   bulkImport,
   clearTable,
   getEntidadesList,
+  getPaisesList,
   entityExists,
   processAiQuery,
   getCrmContext,
