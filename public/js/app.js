@@ -659,7 +659,7 @@ const tableSchemas = {
   paises: {
     endpoint: 'paises',
     pk: 'CodigoPaisNormalizado',
-    columns: ['CodigoPaisNormalizado', 'Nombre', 'Region', 'ReferenciaIndice', 'LinkFichaPais', 'PersonaReferenciaOportun', 'Comentarios'],
+    columns: ['Nombre', 'CodigoPaisNormalizado', 'Region', 'ReferenciaIndice', 'LinkFichaPais', 'PersonaReferenciaOportun', 'Comentarios'],
     labels: { CodigoPaisNormalizado: 'Codigo', Nombre: 'Nombre', Region: 'Region', ReferenciaIndice: 'Ref. Indice', LinkFichaPais: 'Link Ficha', PersonaReferenciaOportun: 'Persona Ref.', Comentarios: 'Comentarios' },
     displayCols: ['CodigoPaisNormalizado', 'Nombre', 'Region', 'ReferenciaIndice', 'LinkFichaPais', 'PersonaReferenciaOportun'],
     urlFields: ['LinkFichaPais'],
