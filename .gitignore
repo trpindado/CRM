@@ -26,3 +26,6 @@ crm.db-wal
 crm.db
 crm.db-shm
 crm.db-wal
+crm.db
+crm.db-shm
+crm.db-wal
